@@ -1,11 +1,11 @@
-=== WooCommerce Acme ===
+=== Blinds Direct - Made to Measure ===
 Contributors: Michael Doye (Web SEO Online (PTY) LTD)
 Tags: woocommerce
 Stable tag: 1.0.0
 
 == Description ==
 
-Tools for Blindsdirect.co.za
+Tools for Blinds Direct
 
 == Installation ==
 
