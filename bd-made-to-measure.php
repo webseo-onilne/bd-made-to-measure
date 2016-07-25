@@ -218,15 +218,15 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
 			 **/
 			public function end_buffer_capture( $buffer ) {
 
-				if ( is_product() && $this->check_bd_product_type() == 'Blinds') {
+				if ( is_product() && $this->check_bd_product_type() == 'Blinds' ) {
 			 		return str_replace( '<body','<body ng-app="bd_made_to_measure" ng-controller="blindsCtrl"', $buffer );
 			 	}
 
-				if ( is_product() && $this->check_bd_product_type() == 'Shutters') {
+				if ( is_product() && $this->check_bd_product_type() == 'Shutters' ) {
 			 		return str_replace( '<body','<body ng-app="bd_made_to_measure" ng-controller="shuttersCtrl"', $buffer );
 			 	}
 
-				if ( is_product() && $this->check_bd_product_type() == 'Curtains') {
+				if ( is_product() && $this->check_bd_product_type() == 'Curtains' ) {
 			 		return str_replace( '<body','<body ng-app="bd_made_to_measure" ng-controller="curtainsCtrl"', $buffer );
 			 	}			 				 		
 			}						

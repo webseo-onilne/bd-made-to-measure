@@ -1,5 +1,5 @@
 === WooCommerce Acme ===
-Contributors: FoxRunSoftware
+Contributors: Michael Doye (Web SEO Online (PTY) LTD)
 Tags: woocommerce
 Stable tag: 1.0.0
 
@@ -7,7 +7,7 @@ This is an example WooCommerce plugin
 
 == Description ==
 
-This is an example WooCommerce plugin
+Tools for Blindsdirect.co.za
 
 == Installation ==
 

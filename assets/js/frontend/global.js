@@ -5,10 +5,18 @@ app
   .factory('DataLoader', function($http) {
 
     return {
-      get: function(width, height) {
+      getBlindsPrices: function(width, height) {
         // lookup
         return $http.get(blinds.ajax_url+'?action=test_action');
       },
+      getCurtainPrices: function(width, height) {
+        // lookup
+        return $http.get(blinds.ajax_url+'?action=test_action');
+      },
+      getShutterPrices: function(width, height) {
+        // lookup
+        return $http.get(blinds.ajax_url+'?action=test_action');
+      }         
     } 
 
   })
