@@ -1,10 +1,10 @@
 <?php
 /*
 Plugin Name: Blinds Direct - Made to Measure
-Plugin URI: http://www.blindsdirect.co.za
-Description: Tools for Blindsdirect.co.za
+Plugin URI: https://github.com/michaeldoye/bd-made-to-measure
+Description: Tools for Blinds Direct
 Author: Blinds Direct
-Author URI: http://www.blindsdirect.co.za
+Author URI: http://webseo.co.za
 Version: 0.0.1
 
 	Copyright: © 2016 Web SEO Online (email : michael@webseo.co.za)
@@ -26,6 +26,9 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
 
 		class BD_made_to_measure {
 			public function __construct() {
+
+				//require 'woocommerce-template.php';
+
 				// called only after woocommerce has finished loading
 				add_action( 'woocommerce_init', array( &$this, 'woocommerce_loaded' ) );
 				
@@ -47,7 +50,15 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
 				// Save product type meta box
 				add_action( 'save_post', array( &$this, 'save_bd_product_type' ) );
 
+				// Add (ng) attributes to body tag - conditionally 
 				add_filter( 'template_include', array( &$this, 'start_buffer_capture' ), 1 );
+
+				// Ajax price calculation
+				add_action('wp_ajax_bd_do_price_calcuation_ajax', array(&$this, 'bd_do_price_calcuation_ajax'));
+				add_action('wp_ajax_nopriv_bd_do_price_calcuation_ajax', array(&$this, 'db_do_price_calcuation_ajax'));
+
+				// Add inputs inside woo product form
+				add_action('woocommerce_before_add_to_cart_button', array(&$this, 'bd_product_size_inputs'), 21);				
 
 				
 				// indicates we are running the admin
@@ -109,7 +120,33 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
 					'product_id' => $post->ID
 				));
 			}			
-			
+
+			/**
+			 * Main Price calc function
+			 */			
+			public function bd_do_price_calcuation_ajax() {
+
+				if ( defined( 'DOING_AJAX' ) && DOING_AJAX ) {
+					$width = $_GET['width'];
+					$drop = $_GET['drop'];
+					$price_group = $_GET['selected_attribute'];
+					echo json_encode( array( 'response' => 'OK', 'width' => $width, 'drop' => $drop, 'selected_attribute' => $price_group ) );
+
+				}
+
+				wp_die();				
+			}
+
+
+			public function bd_product_size_inputs() {
+
+				$output = '<div add-model class="input-wrap"><input ng-model="input_width" type="number" name="wpti_x" placeholder="Enter Width" class="wpti-product-size" id="wpti-product-x">';
+				$output .= '<input ng-model="input_drop" type="number" name="wpti_y" placeholder="Enter Drop" class="wpti-product-size" id="wpti-product-y">';
+				$output .= '<button class="button calculate-price" ng-click="bd_get_price(input_width, input_drop, selected_attribute)" calculate-price">Calculate</button></div>';
+				echo $output;
+
+			}			
+
 			/**
 			 * Take care of anything that needs woocommerce to be loaded.  
 			 * For instance, if you need access to the $woocommerce global
@@ -130,7 +167,7 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
 			 * with our own template functions file
 			 */
 			public function include_template_functions() {
-				include( 'woocommerce-template.php' );
+				//include( 'woocommerce-template.php' );
 			}
 
 
@@ -219,17 +256,17 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
 			public function end_buffer_capture( $buffer ) {
 
 				if ( is_product() && $this->check_bd_product_type() == 'Blinds' ) {
-			 		return str_replace( '<body','<body ng-app="bd_made_to_measure" ng-controller="blindsCtrl"', $buffer );
+			 		return str_replace( '<body', '<body ng-app="bd_made_to_measure" ng-controller="blindsCtrl"', $buffer );
 			 	}
 
 				if ( is_product() && $this->check_bd_product_type() == 'Shutters' ) {
-			 		return str_replace( '<body','<body ng-app="bd_made_to_measure" ng-controller="shuttersCtrl"', $buffer );
+			 		return str_replace( '<body', '<body ng-app="bd_made_to_measure" ng-controller="shuttersCtrl"', $buffer );
 			 	}
 
 				if ( is_product() && $this->check_bd_product_type() == 'Curtains' ) {
-			 		return str_replace( '<body','<body ng-app="bd_made_to_measure" ng-controller="curtainsCtrl"', $buffer );
+			 		return str_replace( '<body', '<body ng-app="bd_made_to_measure" ng-controller="curtainsCtrl"', $buffer );
 			 	}			 				 		
-			}						
+			}									
 
 		}
 
