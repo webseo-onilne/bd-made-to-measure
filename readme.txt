@@ -1,6 +1,6 @@
 === Blinds Direct - Made to Measure ===
 Contributors: Michael Doye (Web SEO Online (PTY) LTD)
-Tags: woocommerce
+Tags: woocommerce, angularJS
 Stable tag: 1.0.0
 
 == Description ==

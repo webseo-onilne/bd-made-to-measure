@@ -94,10 +94,10 @@ function wc_core_dropdown_variation_attribute_options1( $args = array() ) {
 		$options = $attributes[$attribute];
 	}
 
-	echo '<select id="' . esc_attr( $id ) . '" class="' . esc_attr( $class ) . '" name="' . esc_attr( $name ) . '" data-attribute_name="attribute_' . esc_attr( sanitize_title( $attribute ) ) . '">';
+	echo '<select ng-model="selected_attribute" id="' . esc_attr( $id ) . '" class="' . esc_attr( $class ) . '" name="' . esc_attr( $name ) . '" data-attribute_name="attribute_' . esc_attr( sanitize_title( $attribute ) ) . '">';
 
 	if ( $args['show_option_none'] ) {
-		echo '<option value="">' . esc_html( $args['show_option_none'] ) . '</option>';
+		echo '<option value="test">' . esc_html( $args['show_option_none'] ) . '</option>';
 	}
 
 	if ( !empty( $options ) ) {

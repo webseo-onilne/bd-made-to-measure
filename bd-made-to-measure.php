@@ -3,7 +3,7 @@
 Plugin Name: Blinds Direct - Made to Measure
 Plugin URI: https://github.com/michaeldoye/bd-made-to-measure
 Description: Tools for Blinds Direct
-Author: Blinds Direct
+Author: Web SEO Online
 Author URI: http://webseo.co.za
 Version: 0.0.1
 
@@ -27,38 +27,41 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
 		class BD_made_to_measure {
 			public function __construct() {
 
-				//require 'woocommerce-template.php';
-
 				// called only after woocommerce has finished loading
 				add_action( 'woocommerce_init', array( &$this, 'woocommerce_loaded' ) );
-				
 				// called after all plugins have loaded
 				add_action( 'plugins_loaded', array( &$this, 'plugins_loaded' ) );
-				
 				// called just before the woocommerce template functions are included
 				add_action( 'init', array( &$this, 'include_template_functions' ), 20 );
-
 				// Enqueue admin script
 				add_action( 'admin_enqueue_scripts', array( &$this, 'enqueue_admin_assets' ) );
-
-				// Enqueue angular on frontend
+				// Enqueue frontend scripts
 				add_action( 'wp_enqueue_scripts', array( &$this, 'frontend_product_scripts' ) );
-
 				// Product type meta box
 				add_action( 'add_meta_boxes', array( &$this, 'bd_product_type_meta_box' ) );
-
 				// Save product type meta box
 				add_action( 'save_post', array( &$this, 'save_bd_product_type' ) );
-
 				// Add (ng) attributes to body tag - conditionally 
 				add_filter( 'template_include', array( &$this, 'start_buffer_capture' ), 1 );
-
 				// Ajax price calculation
-				add_action('wp_ajax_bd_do_price_calcuation_ajax', array(&$this, 'bd_do_price_calcuation_ajax'));
-				add_action('wp_ajax_nopriv_bd_do_price_calcuation_ajax', array(&$this, 'db_do_price_calcuation_ajax'));
-
+				add_action( 'wp_ajax_bd_do_price_calcuation_ajax', array( &$this, 'bd_do_price_calcuation_ajax' ) );
+				add_action( 'wp_ajax_nopriv_bd_do_price_calcuation_ajax', array( &$this, 'db_do_price_calcuation_ajax' ) );
 				// Add inputs inside woo product form
-				add_action('woocommerce_before_add_to_cart_button', array(&$this, 'bd_product_size_inputs'), 21);				
+				add_action( 'woocommerce_before_add_to_cart_button', array( &$this, 'bd_product_size_inputs'), 21 );
+				// Price Schema
+				add_action( 'woocommerce_before_add_to_cart_button', array( &$this, 'bd_schema_price_wrapper'), 22 );
+				// Add width/drop to cart item data
+				add_filter( 'woocommerce_add_cart_item_data', array( &$this, 'bd_add_input_data_cart' ), 50, 3 );
+				// Get the cart item from session
+				add_filter( 'woocommerce_get_cart_item_from_session', array( &$this, 'bd_get_cart_item_from_session' ), 10, 2);
+				// Get cart item data
+				add_filter( 'woocommerce_get_item_data', array( &$this, 'bd_get_item_data' ), 10, 2 );
+				// Add item data to cart
+				add_filter( 'woocommerce_add_cart_item', array( &$this, 'bd_add_cart_item' ), 50, 2 );
+				// Add order meta to cart
+				add_action( 'woocommerce_add_order_item_meta', array( &$this, 'bd_add_order_item_meta' ), 10, 2 );
+				// Save order meta
+				add_action( 'woocommerce_order_item_meta', array( &$this, 'bd_order_item_meta' ), 10, 2 );
 
 				
 				// indicates we are running the admin
@@ -127,10 +130,17 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
 			public function bd_do_price_calcuation_ajax() {
 
 				if ( defined( 'DOING_AJAX' ) && DOING_AJAX ) {
+
 					$width = $_GET['width'];
 					$drop = $_GET['drop'];
 					$price_group = $_GET['selected_attribute'];
-					echo json_encode( array( 'response' => 'OK', 'width' => $width, 'drop' => $drop, 'selected_attribute' => $price_group ) );
+
+					$result = $this->calculate_blinds_price($width, $drop, $price_group, false);
+					$currency = html_entity_decode( get_woocommerce_currency_symbol() );
+					$tax = new WC_Tax();
+					$rates = $tax->find_rates( array( 'country' => 'ZA' ) );					
+
+					echo json_encode( is_float($result) ? array( 'response' => 'OK', 'price' => $result, 'currency' => $currency, 'tax' => $rates ) : array( 'response' => 'ERROR', 'message' => $result ) );
 
 				}
 
@@ -140,11 +150,29 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
 
 			public function bd_product_size_inputs() {
 
-				$output = '<div add-model class="input-wrap"><input ng-model="input_width" type="number" name="wpti_x" placeholder="Enter Width" class="wpti-product-size" id="wpti-product-x">';
-				$output .= '<input ng-model="input_drop" type="number" name="wpti_y" placeholder="Enter Drop" class="wpti-product-size" id="wpti-product-y">';
-				$output .= '<button class="button calculate-price" ng-click="bd_get_price(input_width, input_drop, selected_attribute)" calculate-price">Calculate</button></div>';
+				$output = '<div add-model class="input-wrap"><input ng-model="input_width" ng-change="bd_get_price(input_width, input_drop, selected_attribute)" type="number" name="wpti_x" placeholder="Enter Width" class="wpti-product-size" id="wpti-product-x">';
+				$output .= '<input ng-model="input_drop" ng-change="bd_get_price(input_width, input_drop, selected_attribute)" type="number" name="wpti_y" placeholder="Enter Drop" class="wpti-product-size" id="wpti-product-y">';
+				$output .= '<div class="button calculate-price" ng-click="bd_get_price(input_width, input_drop, selected_attribute)">Calculate</div></div>';
 				echo $output;
 
+			}
+
+			public function bd_schema_price_wrapper() {
+				global $woocommerce, $post;
+
+				$product = get_product($post->ID);				
+				$currency = get_woocommerce_currency();
+				$stock = ($product->is_in_stock() ? 'InStock' : 'OutOfStock');
+
+				$output = '<div itemprop="offers" itemscope itemtype="http://schema.org/Offer">
+					<p itemprop="price" class="price">
+						<span ng-cloak class="amount final-price" id="wpti-product-price">{{currencySymbol}} {{finalPrice}}</span>
+					</p>
+					<meta itemprop="priceCurrency" content="'.$currency.'" />
+					<link itemprop="availability" href="http://schema.org/'.$stock.'" />
+				</div>';
+
+				echo $output;				
 			}			
 
 			/**
@@ -245,9 +273,10 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
 			 * depending on product type
 			 **/
 			public function start_buffer_capture( $template ) {
-			 	ob_start( array(&$this, 'end_buffer_capture' ) );  // Start Page Buffer
+			 	ob_start( array( &$this, 'end_buffer_capture' ) );  // Start Page Buffer
 			 	return $template;
 			}
+			
 
 			/**
 			 * Add angular attributes to body tag
@@ -259,14 +288,148 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
 			 		return str_replace( '<body', '<body ng-app="bd_made_to_measure" ng-controller="blindsCtrl"', $buffer );
 			 	}
 
-				if ( is_product() && $this->check_bd_product_type() == 'Shutters' ) {
+				elseif ( is_product() && $this->check_bd_product_type() == 'Shutters' ) {
 			 		return str_replace( '<body', '<body ng-app="bd_made_to_measure" ng-controller="shuttersCtrl"', $buffer );
 			 	}
 
-				if ( is_product() && $this->check_bd_product_type() == 'Curtains' ) {
+				elseif ( is_product() && $this->check_bd_product_type() == 'Curtains' ) {
 			 		return str_replace( '<body', '<body ng-app="bd_made_to_measure" ng-controller="curtainsCtrl"', $buffer );
+			 	}
+
+			 	else {
+			 		return str_replace( '<body', '<body ng-app="bd_made_to_measure"', $buffer );
 			 	}			 				 		
-			}									
+			}
+
+
+			/**
+			 * Add input data to the cart item
+			 **/
+			public function bd_add_input_data_cart( $cart_item = array() ) {
+				$cart_item['wpti_options'] = array(
+					'x' => array_key_exists('wpti_x', $_REQUEST) ? $_REQUEST['wpti_x'] : 0.01,
+					'y' => array_key_exists('wpti_y', $_REQUEST) ? $_REQUEST['wpti_y'] : 0.01
+				);
+				return $cart_item;
+			}
+
+
+			/**
+			 * Get the cart item from the user session
+			 **/
+			public function bd_get_cart_item_from_session( $cart_item, $cart_item_data ) {
+				if (isset($cart_item_data['wpti_options'])) {
+					$cart_item['wpti_options'] = $cart_item_data['wpti_options'];
+					$this->set_price($cart_item);
+				}
+				return $cart_item;
+			}
+
+
+			/**
+			 * Get the item data (to be used in the cart)
+			 **/
+			public function bd_get_item_data( $item_data, $cart_item ) {
+				$item_data[] = array(
+					'name' => $this->get_size_label(),
+					'value' =>  $this->get_size_string($cart_item)
+				);
+				return $item_data;
+			}
+
+
+			/**
+			 * helper method to retrieve order size in string
+			 **/
+			protected function get_size_label() {
+				$x_name = 'Width';
+				$y_name = 'Drop';
+				$label = $x_name . " x " . $y_name;
+				return $label;
+			}
+
+
+			/**
+			 * helper method to retrieve size information in string
+			 **/
+			protected function get_size_string(&$cart_item) {
+				$x_value = number_format($cart_item['wpti_options']['x']);
+				$y_value = number_format($cart_item['wpti_options']['y']);
+				$x_metric = 'mm';
+				$y_metric = 'mm';
+				$string = $x_value ." ". $x_metric . " x " . $y_value . " " . $y_metric;
+				return $string;
+			}
+
+
+			/**
+			 * Add the item to the cart
+			 **/
+			public function bd_add_cart_item( $cart_item, $cart_item_key ) {
+				$this->set_price( $cart_item );
+				return $cart_item;
+			}
+
+
+			/**
+			 * Add the meta data to the order
+			 **/
+			public function bd_add_order_item_meta( $item_id, $values ) {
+				woocommerce_add_order_item_meta($item_id, $this->get_size_label(), $this->get_size_string($values));
+			}
+
+
+			/**
+			 * Add input data to cart item (meta)
+			 **/
+			public function bd_order_item_meta( $item_meta, $cart_item ) {
+				$item_meta->add($this->get_size_label(), $this->get_size_string($cart_item));
+			}																	
+
+
+			/**
+			 * Set price on the cart item
+			 **/
+			protected function set_price( &$cart_item ) {
+				// Remove empty variation names from variation array
+				if (array_key_exists('variation', $cart_item) && is_array($cart_item['variation']) && count($cart_item['variation'])) {
+					$tmp_cart = array();
+					foreach ($cart_item['variation'] as $key => $value) {
+						if (!$value) continue;
+						if (strpos($key, 'attribute_') !== false) {
+							$key = substr($key, strpos($key, 'pa_'));
+						}						
+						$tmp_cart[$key] = $value;
+					}
+					// Replace the variations array with the modified one
+					$cart_item['variation'] = $tmp_cart;
+					// Get the price group
+					$group = array_keys($cart_item['variation'])[0];
+				}				
+
+				$wpti  = &$cart_item['wpti_options'];
+				// Get the price
+				$price = $this->calculate_blinds_price($wpti['x'], $wpti['y'], $group, false);
+				// Set the price on the cart item
+				$cart_item['data']->set_price($price);	
+			}
+
+			/**
+			 * Calculate price for blinds
+			 **/
+			public function calculate_blinds_price( $width, $drop, $price_group, $options ) {
+				global $wpdb;
+				if ( !$width || !$drop || !$price_group ) continue;
+
+				$price = $wpdb->get_var($wpdb->prepare(
+					"SELECT price FROM `wp_woocommerce_addon_price_table`
+					WHERE field_label = %s AND choice = %s
+					ORDER BY ABS(width - %d) ASC, ABS(height - %d) ASC",
+					$price_group, $price_group, $width, $drop)
+				);
+
+				return $price ? (float)$price : $price = $wpdb->last_error;				
+			} 									
 
 		}
 

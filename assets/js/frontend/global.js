@@ -1,3 +1,5 @@
+'use strict';
+
 var app = angular.module("bd_made_to_measure", []);
 
 app
@@ -21,15 +23,31 @@ app
 
   })
 
-  .directive('addModel', function () {
+  .directive('addModel', function ($compile) {
     return {
       restrict: 'A',
       link: function(scope, element, attrs) {
-        var $_ = jQuery, selectOption = $_.find('.select-option');
-        
+        var $_ = jQuery, selectOption = $_.find('.select-option');    
         $_(selectOption).on('click', function() {
           scope.selected_attribute = $_(this).closest('tr').find('select').attr('id');
         });
       }
     };
+  })
+
+  .directive('form', function($location) {
+    return {
+      restrict:'E',
+      priority: 999,
+      compile: function() {
+        return {
+          pre: function(scope, element, attrs){
+            if (attrs.noaction === '') return;
+            if (attrs.action === undefined || attrs.action === ''){
+              attrs.action = $location.absUrl();
+            }
+          }
+        }
+      }
+    }
   });
