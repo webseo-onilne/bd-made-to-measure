@@ -23,7 +23,7 @@ app
 
   })
 
-  .directive('addModel', function ($compile) {
+  .directive('addModel', function () {
     return {
       restrict: 'A',
       link: function(scope, element, attrs) {
@@ -50,4 +50,27 @@ app
         }
       }
     }
-  });
+  })
+
+  .directive('changeQuantity', function () {
+    return {
+      restrict: 'A',
+      link: function(scope, element, attrs) {
+        let $_ = jQuery; 
+        let plus = element.next();
+        let minus = $_(element).prev('input');
+
+        plus.on('click', function() {
+          if (parseInt(element.val()) < 1) return;
+          scope.productQuantity = parseInt(element.val())+1;
+          scope.bd_get_price(scope.input_width, scope.input_drop, scope.selected_attribute, parseInt(element.val())+1);
+        });
+
+        minus.on('click', function() {
+          if (parseInt(element.val()) <= 1) return;
+          scope.productQuantity = parseInt(element.val())-1;
+          scope.bd_get_price(scope.input_width, scope.input_drop, scope.selected_attribute, parseInt(element.val())-1);
+        });        
+      }
+    };
+  })
