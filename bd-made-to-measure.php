@@ -34,8 +34,6 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
 				add_action( 'plugins_loaded', array( &$this, 'plugins_loaded' ) );
 				// called just before the woocommerce template functions are included
 				add_action( 'init', array( &$this, 'include_template_functions' ), 20 );
-				// Enqueue admin script
-				add_action( 'admin_enqueue_scripts', array( &$this, 'enqueue_admin_assets' ) );
 				// Enqueue frontend scripts
 				add_action( 'wp_enqueue_scripts', array( &$this, 'frontend_product_scripts' ) );
 				// Product type meta box
@@ -80,25 +78,6 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
 				// take care of anything else that needs to be done immediately upon plugin instantiation, here in the constructor
 			}
 
-
-			/**
-			 * Add scripts used in the admin area
-			 */	
-			public function enqueue_admin_assets(){
-
-			    // Enqueue custom js
-			    wp_enqueue_script( 
-			        'bd_admin_custom',
-			        plugin_dir_url( __FILE__ ) . 'assets/js/admin/bd_admin_custom.js',
-			        array( 'jquery', 'jquery-ui-core', 'jquery-ui-tabs' )
-			    );
-
-			    // Create globals here for the custom.js file
-				wp_localize_script( 'bd_admin_custom', 'blinds', array(
-					'ajax_url' => admin_url( 'admin-ajax.php' )
-				));
-
-			}
 
 
 			/**
@@ -197,9 +176,9 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
 							WHERE field_label = '$tax_term' ", OBJECT );
 					}
 
-					$output = '<div add-model class="input-wrap"><input data-dims="'.htmlspecialchars(json_encode($max_dimensions)).'" input-width-restraints ng-model="input_width" ng-change="bd_get_price(input_width, input_drop, selected_attribute, productQuantity)" type="number" name="wpti_x" placeholder="Enter Width" class="wpti-product-size" id="wpti-product-x">';
-					$output .= '<input data-dims="'.htmlspecialchars(json_encode($max_dimensions)).'" input-drop-restraints ng-model="input_drop" ng-change="bd_get_price(input_width, input_drop, selected_attribute, productQuantity)" type="number" name="wpti_y" placeholder="Enter Drop" class="wpti-product-size" id="wpti-product-y">';
-					$output .= '<div data-dims="'.htmlspecialchars(json_encode($max_dimensions)).'" class="button calculate-price" custom-validation ng-click="bd_get_price(input_width, input_drop, selected_attribute, productQuantity)">Calculate</div></div>';
+					$output = '<div add-model class="input-wrap"><input disabled="true" title="Please select a finish" data-dims="'.htmlspecialchars(json_encode($max_dimensions)).'" input-width-restraints ng-model="input_width" ng-change="bd_get_price(input_width, input_drop, selected_attribute, productQuantity)" type="number" name="wpti_x" placeholder="Please select a finish" class="wpti-product-size" id="wpti-product-x">';
+					$output .= '<input disabled="true" title="Please select a finish" data-dims="'.htmlspecialchars(json_encode($max_dimensions)).'" input-drop-restraints ng-model="input_drop" ng-change="bd_get_price(input_width, input_drop, selected_attribute, productQuantity)" type="number" name="wpti_y" placeholder="Please select a finish" class="wpti-product-size" id="wpti-product-y">';
+					$output .= '<div disabled="true" title="Please select a finish" data-dims="'.htmlspecialchars(json_encode($max_dimensions)).'" class="button calculate-price" custom-validation ng-click="bd_get_price(input_width, input_drop, selected_attribute, productQuantity)">Calculate</div></div>';
 					echo $output;
 				}
 			}
@@ -217,7 +196,7 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
 
 				$output = '<div itemprop="offers" itemscope itemtype="http://schema.org/Offer">
 					<p itemprop="price" class="price">
-						<span ng-cloak class="amount final-price" id="wpti-product-price">{{currencySymbol}} {{finalPrice}}</span>
+						<span ng-cloak ng-show="finalPrice" class="amount final-price" id="wpti-product-price">{{currencySymbol}} {{finalPrice}}</span>
 					</p>
 					<meta itemprop="priceCurrency" content="'.$currency.'" />
 					<link itemprop="availability" href="http://schema.org/'.$stock.'" />
@@ -574,3 +553,6 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
 		$GLOBALS['bd_made_to_measure'] = new BD_made_to_measure();
 	}
 }
+
+// Include admin class
+require( dirname( __FILE__ ) . '/admin/bd-made-to-measure-admin.php' );

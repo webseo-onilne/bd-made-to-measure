@@ -11,7 +11,11 @@ jQuery(document).ready(function ($) {
             // On click of a finish, click the clear button
             // to keep the price of the selected variation
             // otherwise it adds the prices together
+            // Also - activate the input feilds
             $('.reset_variations').trigger('click');
+            $('#wpti-product-x').attr({'disabled': false, 'title': '', 'placeholder': 'Enter a width'});
+            $('#wpti-product-y').attr({'disabled': false, 'title': '', 'placeholder': 'Enter a drop'});
+            $('.calculate-price').attr({'disabled': false, 'title': ''})
 
             // Remove any other finish that has the 'selected' class
             $(this).closest('form.variations_form').find('div.select').each(function() {

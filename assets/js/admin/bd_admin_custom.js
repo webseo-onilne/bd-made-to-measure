@@ -1,107 +1,141 @@
-jQuery(document).ready(function($) {
+jQuery(document).ready(function ($) {
 
+	toastr.options.closeButton = true;
+	NProgress.start();
+	NProgress.done();
 
-	$('#_wcbp_product_select').on('change', function() {
+  var app = angular.module('curtainManager', []);
 
-		var priceGroup = $(this).find('option:selected').val();
+  app
 
-		var options = {
-			action    : 'wcbp_ajax_build_addon_select',
-			variation : priceGroup
-		};
+    .factory('DataLoader', function($http) {
+      return {
+        getPriceData: function(priceGroup) {
+          return $http.get(blinds.ajax_url+'?action=get_price_book_ajax&group='+priceGroup);
+        },
+        getMarkupData: function(priceGroup) {
+          return $http.get(blinds.ajax_url+'?action=get_markup_ajax&group='+priceGroup);
+        },
+        addMarkupData: function(markupData, priceGroup, markupRange) {
+          return $http.get(blinds.ajax_url+'?action=bd_ajax_save_markup_data&group='+priceGroup+'&mdata='+markupData+'&range='+markupRange);
+        }                 
+      } 
+    })
 
-		$.get(blinds.ajax_url, options, {}, 'json')
-			.then(function(response) {
-				showFinishes(response);
-			});
-	});
+    .controller('curtainCtrl', function($scope, $http, DataLoader) {
 
-	$('#_wcbp_finish_select').on('change', function() {
+      $scope.curtaingroup = 'undefined';
+      $scope.filterby = '';
+      $scope.liningFilter = '';
 
-		var finish = $(this).find('option:selected').val();
-		var group = $('#_wcbp_product_select').find('option:selected').val();
+      $scope.getCurtainPrices = function(curtainGroup) { 
+        NProgress.start();
 
-		var options = {
-			action : 'wcbp_ajax_get_prices', 
-			choice : finish,
-			width  : $('#_wcbp_txt_field_x').val(),
-			height : $('#_wcbp_txt_field_y').val(),
-			group  : group
-		};
+        DataLoader.getPriceData(curtainGroup).then(function(response) {
 
-		$.get(blinds.ajax_url, options, {}, 'json')
-			.then(function(response) {
-				var price = addMarkup(response);
-				$('#meta-box-proposal').find('#prop-price').remove();
-				$('#meta-box-proposal').append('<div data-price="'+response.price+'" id="prop-price" style="padding: 10px;text-align: center;background: orange;font-weight: bolder;color: white;font-size: 20px;">R '+price.toFixed(2)+'</div>');
-				generateMeta();
-			});
-	});
+          if (response.data == '""' || !response.data || response.data === null) {
+            toastr.error('No price sheet for the selected group', 'Error');
+            NProgress.done();
+            $scope.allPrices = '';
+            return;
+          }
 
-	function showFinishes(response) {
-		$('#_wcbp_finish_select').empty();
-		$('#_wcbp_finish_select').append('<option value="TBA">TBA</option>');
-		$.each(response.terms, function(i, v) {
-			$('#_wcbp_finish_select').append('<option value="'+v.name+'">'+v.name+'</option>');
-		});
-	}
+          angular.forEach(response.data, function(v, i) {
+            if (!v.markup_range_1) return;
+            v.marked_up_price = addMarkup(v).toFixed(2);
+          });
 
+          $scope.selectedGroupActaual = curtainGroup;
+          $scope.selectedGroup = curtainGroup;
+          $scope.allPrices = response.data;
+          NProgress.done();
+        });
 
-	function addMarkup(data) {
+        DataLoader.getMarkupData(curtainGroup).then(function(response) {
+          
+          if (response.data == '""' || !response.data || response.data === null) {
+            toastr.warning('No markup data for the selected group', 'Notice');
+            NProgress.done();
+            $scope.range1 = {};
+            $scope.range2 = {};
+            $scope.range3 = {};
+            return;
+          }
 
-		var range1 = JSON.parse(data.markup_range_1);
-		var range2 = JSON.parse(data.markup_range_2);
-		var range3 = JSON.parse(data.markup_range_3);
-		var price = parseInt(data.price);
+          var range1Data = JSON.parse(response.data[0].markup_range_1);
+          var range2Data = JSON.parse(response.data[0].markup_range_2);
+          var range3Data = JSON.parse(response.data[0].markup_range_3);
 
-		if (range1 == null) {
-			var range1 = {'from': 0, 'to': 0, 'by': 0};
-		};
-		if (range2 == null) {
-			var range2 = {'from': 0, 'to': 0, 'by': 0};
-		};
-		if (range3 == null) {
-			var range3 = {'from': 0, 'to': 0, 'by': 0};
-		}
+          $scope.range1 = {
+            'to': range1Data.to,
+            'from': range1Data.from,
+            'markup_by': range1Data.markup_by
+          };
 
-		if (price >= range1.from && price <= range1.to ) {
-			var price = (price * range1.by / 100 + price); 
+          $scope.range2 = {
+            'to': range2Data.to,
+            'from': range2Data.from,
+            'markup_by': range2Data.markup_by
+          };
 
-		} else if (price >= range2.from && price <= range2.to) {
-			var price = (price * range2.by / 100 + price);
+          $scope.range3 = {
+            'to': range3Data.to,
+            'from': range3Data.from,
+            'markup_by': range3Data.markup_by
+          };                    
+        });
+      }
 
-		} else if (price >= range3.from && price <= range3.to) {
-			var price = (price * range3.by / 100 + price);
+      $scope.saveMarkup = function(markupData, priceGroup, markupRange) {
+        NProgress.start();
+        //console.log(JSON.stringify(markupData));
+        DataLoader.addMarkupData(JSON.stringify(markupData), priceGroup, markupRange).then(function(response) {
+          if (!response.data || response.data == '' || response.data == null) {
+            toastr.error('An error occured, please try again', 'Error');
+            NProgress.done();
+          }
+          $scope.getCurtainPrices(priceGroup);
+          toastr.success('Markup Added', 'Success');
+          NProgress.done();
+        });
+      };
 
-		}
-		else if (price >= range3.to && price <= 1000000) {
-			var price = price;
+      function addMarkup(data) {
+        
+        var range1 = JSON.parse(data.markup_range_1);
+        var range2 = JSON.parse(data.markup_range_2);
+        var range3 = JSON.parse(data.markup_range_3);
+        var price = parseFloat(data.price);
 
-		} else {
-			var price = price;
-		};
+        //console.log(range1);
 
-		return price;
-	}
+        if (range1 == null) {
+          var range1 = {'from': 0, 'to': 0, 'by': 0};
+        };
+        if (range2 == null) {
+          var range2 = {'from': 0, 'to': 0, 'by': 0};
+        };
+        if (range3 == null) {
+          var range3 = {'from': 0, 'to': 0, 'by': 0};
+        }
 
+        if (price >= parseInt(range1.from) && price <= parseInt(range1.to) ) {
+          var price = (price * parseInt(range1.markup_by) / 100 + price); 
 
-	var $_elements = '#_wcbp_fittingtype_select, #_wcbp_controller_select, #_wcbp_finish_select, #_wcbp_product_select';
-	$($_elements).on('change', function() {
-		generateMeta();
-	});
+        } else if (price >= parseInt(range2.from) && price <= parseInt(range2.to) ) {
+          var price = (price * parseInt(range2.markup_by) / 100 + price);
 
-	function generateMeta() {
-		$('.prop-meta').remove();
-		var meta = {
-			choice      : $('#_wcbp_finish_select').find('option:selected').val(),
-			width       : $('#_wcbp_txt_field_x').val(),
-			height      : $('#_wcbp_txt_field_y').val(),
-			group  	    : $('#_wcbp_product_select').find('option:selected').text(),
-			controller  : $('#_wcbp_controller_select').find('option:selected').val(),
-			fittingType : $('#_wcbp_fittingtype_select').find('option:selected').val(),
-		};
-		var metaDetails = '<div class="prop-meta"><hr/>Finish: '+meta.group+': '+meta.choice+', Dimensions: Width: '+meta.width+' x Height: '+meta.height+', Controller: '+meta.controller+', Fitting Type: '+meta.fittingType+'<hr/></div>';
-		$('#_wcbp_fittingtype_select').after(metaDetails);
-	}
+        } else if (price >= parseInt(range3.from) && price <= parseInt(range3.to) ) {
+          var price = (price * parseInt(range3.markup_by) / 100 + price);
+
+        }
+         else {
+          var price = price;
+        };
+
+        return price;
+      }      
+
+    });
 
 });

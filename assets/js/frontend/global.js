@@ -75,7 +75,7 @@ app
     };
   })
 
-  .directive('inputWidthRestraints', function () {
+  .directive('inputWidthRestraints', function ($timeout) {
     return {
       restrict: 'A',
       link: function(scope, element, attrs) {
@@ -85,8 +85,10 @@ app
           let restraints = angular.fromJson(attrs.dims)[selectedAttr][0];          
           if (userInput < parseInt(restraints.min_width)) {
             element.css('border', '1px solid red').addClass('invalid').removeClass('valid');
+            $timeout(function(){scope.finalPrice = undefined},700);
           } else if (userInput > parseInt(restraints.max_width)) {
             element.css('border', '1px solid red').addClass('invalid').removeClass('valid');
+            $timeout(function(){scope.finalPrice = undefined},700);
           } else {
             element.css('border', '1px solid #cccccc').removeClass('invalid').addClass('valid');
           } 
@@ -100,7 +102,7 @@ app
     };
   })
 
-  .directive('inputDropRestraints', function () {
+  .directive('inputDropRestraints', function ($timeout) {
     return {
       restrict: 'A',
       link: function(scope, element, attrs) {
@@ -110,8 +112,10 @@ app
           let restraints = angular.fromJson(attrs.dims)[selectedAttr][0];          
           if (userInput < parseInt(restraints.min_drop)) {
             element.css('border', '1px solid red').addClass('invalid').removeClass('valid');
+            $timeout(function(){scope.finalPrice = undefined},700);
           } else if (userInput > parseInt(restraints.max_drop)) {
             element.css('border', '1px solid red').addClass('invalid').removeClass('valid');
+            $timeout(function(){scope.finalPrice = undefined},700);
           } else {
             element.css('border', '1px solid #cccccc').removeClass('invalid').addClass('valid');
           }
