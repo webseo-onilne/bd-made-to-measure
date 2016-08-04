@@ -46,7 +46,7 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
 				add_filter( 'template_include', array( &$this, 'start_buffer_capture' ), 1 );
 				// Ajax price calculation
 				add_action( 'wp_ajax_bd_do_price_calcuation_ajax', array( &$this, 'bd_do_price_calcuation_ajax' ) );
-				add_action( 'wp_ajax_nopriv_bd_do_price_calcuation_ajax', array( &$this, 'db_do_price_calcuation_ajax' ) );
+				add_action( 'wp_ajax_nopriv_bd_do_price_calcuation_ajax', array( &$this, 'bd_do_price_calcuation_ajax' ) );
 				// Add inputs inside woo product form
 				add_action( 'woocommerce_before_add_to_cart_button', array( &$this, 'bd_product_size_inputs'), 21 );
 				// Price Schema
@@ -111,6 +111,7 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
 				if ( is_product() ) {
 					wp_enqueue_script( 'angular_js', plugin_dir_url( __FILE__ ) . 'assets/js/frontend/angular-1.4.6-min.js' );
 					wp_enqueue_script( 'global_js', plugin_dir_url( __FILE__ ) . 'assets/js/frontend/global.js', array( 'angular_js', 'jquery', 'jquery-ui-core' ) );
+					wp_enqueue_script( 'jquery_custom', plugin_dir_url( __FILE__ ) . 'assets/js/frontend/jquery_custom.js', array( 'jquery', 'jquery-ui-core' ) );
 				}
 
 				// Blinds 
@@ -184,11 +185,21 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
 			 * Insert the input fields on the product page
 			 */	
 			public function bd_product_size_inputs() {
-				global $post;
+				global $post, $wpdb;
 				if ( $this->product_has_price_table( $post->ID ) ) {
-					$output = '<div add-model class="input-wrap"><input ng-model="input_width" ng-change="bd_get_price(input_width, input_drop, selected_attribute, productQuantity)" type="number" name="wpti_x" placeholder="Enter Width" class="wpti-product-size" id="wpti-product-x">';
-					$output .= '<input ng-model="input_drop" ng-change="bd_get_price(input_width, input_drop, selected_attribute, productQuantity)" type="number" name="wpti_y" placeholder="Enter Drop" class="wpti-product-size" id="wpti-product-y">';
-					$output .= '<div class="button calculate-price" ng-click="bd_get_price(input_width, input_drop, selected_attribute, productQuantity)">Calculate</div></div>';
+
+					$addons = $this->get_product_addons();
+
+					foreach ($addons as $addon) {
+						$tax_term = $addon['slug'];
+						$max_dimensions[$addon['slug']] = $wpdb->get_results( "SELECT MAX(width) as max_width, MIN(width) as min_width, MAX(height) as max_drop, MIN(height) as min_drop 
+							FROM `wp_woocommerce_addon_price_table` 
+							WHERE field_label = '$tax_term' ", OBJECT );
+					}
+
+					$output = '<div add-model class="input-wrap"><input data-dims="'.htmlspecialchars(json_encode($max_dimensions)).'" input-width-restraints ng-model="input_width" ng-change="bd_get_price(input_width, input_drop, selected_attribute, productQuantity)" type="number" name="wpti_x" placeholder="Enter Width" class="wpti-product-size" id="wpti-product-x">';
+					$output .= '<input data-dims="'.htmlspecialchars(json_encode($max_dimensions)).'" input-drop-restraints ng-model="input_drop" ng-change="bd_get_price(input_width, input_drop, selected_attribute, productQuantity)" type="number" name="wpti_y" placeholder="Enter Drop" class="wpti-product-size" id="wpti-product-y">';
+					$output .= '<div data-dims="'.htmlspecialchars(json_encode($max_dimensions)).'" class="button calculate-price" custom-validation ng-click="bd_get_price(input_width, input_drop, selected_attribute, productQuantity)">Calculate</div></div>';
 					echo $output;
 				}
 			}
@@ -509,7 +520,53 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
 			private function add_price_markup( $price ) {
 				// Markup Logic Here
 				return $price;
-			}	 									
+			}
+
+			public function normalize_taxonomy_name($name, $prefix = 'pa_') {
+				$prefix_length = strlen($prefix);
+
+				if ($prefix_length > 0 && strpos($name, $prefix) == 0) {
+					$name = substr($name, $prefix_length);
+				}
+
+				return ucwords(str_replace(array('-', '_'), ' ', $name));
+			}
+
+			public function fill_taxonomy_terms($terms = array(), &$target) {
+				foreach ($terms as $term) {
+					$target[$term->taxonomy]['terms'][] = (object) array(
+						'term_id' => $term->term_id,
+						'name' => $term->name,
+						'slug' => $term->slug
+					);
+				}
+			}			
+
+			public function get_product_addons() {
+				global $woocommerce;
+
+				$addons = array();
+				$version_comparison = version_compare($woocommerce->version, '2.1');
+				$wc_get_attribute_taxonomy_names_exists = function_exists('wc_get_attribute_taxonomy_names');
+				$attr_tax = ($version_comparison >= 0 && $wc_get_attribute_taxonomy_names_exists)
+					? wc_get_attribute_taxonomy_names() // from 2.1
+					: (method_exists($woocommerce, 'get_attribute_taxonomy_names')
+						? $woocommerce->get_attribute_taxonomy_names() // pre 2.1
+						: array());
+
+				foreach ($attr_tax as $taxonomy) {
+					$name = $this->normalize_taxonomy_name($taxonomy);
+					$addons[$taxonomy] = array(
+						'normalized_name' => $name,
+						'slug' => $taxonomy,
+						'terms' => array()
+					);
+				}
+
+				$terms = get_terms($attr_tax);
+				$this->fill_taxonomy_terms($terms, $addons);
+				return $addons;
+			}				 									
 
 		}
 

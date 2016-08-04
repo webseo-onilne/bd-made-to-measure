@@ -74,3 +74,69 @@ app
       }
     };
   })
+
+  .directive('inputWidthRestraints', function () {
+    return {
+      restrict: 'A',
+      link: function(scope, element, attrs) {
+        element.on('change', function() {
+          let userInput = element.val();
+          let selectedAttr = scope.selected_attribute;
+          let restraints = angular.fromJson(attrs.dims)[selectedAttr][0];          
+          if (userInput < parseInt(restraints.min_width)) {
+            element.css('border', '1px solid red').addClass('invalid').removeClass('valid');
+          } else if (userInput > parseInt(restraints.max_width)) {
+            element.css('border', '1px solid red').addClass('invalid').removeClass('valid');
+          } else {
+            element.css('border', '1px solid #cccccc').removeClass('invalid').addClass('valid');
+          } 
+          if (jQuery('.valid').length === 2) {
+              jQuery('.single_add_to_cart_button').removeClass('disabled wc-variation-selection-needed');
+          } else {
+            jQuery('.single_add_to_cart_button').addClass('disabled wc-variation-selection-needed');
+          }                   
+        });
+      }
+    };
+  })
+
+  .directive('inputDropRestraints', function () {
+    return {
+      restrict: 'A',
+      link: function(scope, element, attrs) {
+        element.on('change', function() {
+          let userInput = element.val();
+          let selectedAttr = scope.selected_attribute;
+          let restraints = angular.fromJson(attrs.dims)[selectedAttr][0];          
+          if (userInput < parseInt(restraints.min_drop)) {
+            element.css('border', '1px solid red').addClass('invalid').removeClass('valid');
+          } else if (userInput > parseInt(restraints.max_drop)) {
+            element.css('border', '1px solid red').addClass('invalid').removeClass('valid');
+          } else {
+            element.css('border', '1px solid #cccccc').removeClass('invalid').addClass('valid');
+          }
+          if (jQuery('.valid').length === 2) {
+              jQuery('.single_add_to_cart_button').removeClass('disabled wc-variation-selection-needed');
+          } else {
+            jQuery('.single_add_to_cart_button').addClass('disabled wc-variation-selection-needed');
+          }                   
+        });
+      }
+    };
+  })
+
+  .directive('customValidation', function () {
+    return {
+      restrict: 'A',
+      link: function(scope, element, attrs) {
+        var $_ = jQuery;   
+        element.on('click', function() {
+          if (jQuery('.valid').length === 2) {
+              jQuery('.single_add_to_cart_button').removeClass('disabled wc-variation-selection-needed');
+          } else {
+            jQuery('.single_add_to_cart_button').addClass('disabled wc-variation-selection-needed');
+          }
+        });
+      }
+    };
+  })
