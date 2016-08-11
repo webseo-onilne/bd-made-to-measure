@@ -1,5 +1,7 @@
 jQuery(document).ready(function ($) {
 
+    $('[data-toggle="tooltip"]').tooltip()
+
     /*
     * Remove 'selected' class from all
     * other selected finishes

@@ -82,15 +82,19 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
 
 			/**
 			 * Add scripts used on the front end
-			 */	
+			 */
 			public function frontend_product_scripts () {
 				global $post;
+
+				wp_register_style( 'bs_custom_css', plugin_dir_url( __FILE__ ) . 'assets/bootstrap/bootstrap.min.css', false, '1.0.0' );
 
 				// Angular and global scripts
 				if ( is_product() ) {
 					wp_enqueue_script( 'angular_js', plugin_dir_url( __FILE__ ) . 'assets/js/frontend/angular-1.4.6-min.js' );
 					wp_enqueue_script( 'global_js', plugin_dir_url( __FILE__ ) . 'assets/js/frontend/global.js', array( 'angular_js', 'jquery', 'jquery-ui-core' ) );
 					wp_enqueue_script( 'jquery_custom', plugin_dir_url( __FILE__ ) . 'assets/js/frontend/jquery_custom.js', array( 'jquery', 'jquery-ui-core' ) );
+					wp_enqueue_script( 'bs_custom_js', plugin_dir_url( __FILE__ ) . 'assets/bootstrap/bootstrap.min.js', array( 'jquery', 'jquery-ui-core' ) );
+				    wp_enqueue_style( 'bs_custom_css' );					
 				}
 
 				// Blinds 
@@ -176,9 +180,13 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
 							WHERE field_label = '$tax_term' ", OBJECT );
 					}
 
-					$output = '<div add-model class="input-wrap"><input disabled="true" title="Please select a finish" data-dims="'.htmlspecialchars(json_encode($max_dimensions)).'" input-width-restraints ng-model="input_width" ng-change="bd_get_price(input_width, input_drop, selected_attribute, productQuantity)" type="number" name="wpti_x" placeholder="Please select a finish" class="wpti-product-size" id="wpti-product-x">';
-					$output .= '<input disabled="true" title="Please select a finish" data-dims="'.htmlspecialchars(json_encode($max_dimensions)).'" input-drop-restraints ng-model="input_drop" ng-change="bd_get_price(input_width, input_drop, selected_attribute, productQuantity)" type="number" name="wpti_y" placeholder="Please select a finish" class="wpti-product-size" id="wpti-product-y">';
-					$output .= '<div disabled="true" title="Please select a finish" data-dims="'.htmlspecialchars(json_encode($max_dimensions)).'" class="button calculate-price" custom-validation ng-click="bd_get_price(input_width, input_drop, selected_attribute, productQuantity)">Calculate</div></div>';
+					$output = '<div add-model class="input-wrap">
+						<label style="width:25%;" for="wpti-product-x" data-toggle="tooltip" data-placement="right" title="Enter width in Millimeters (mm)">Width <small>(mm)</small></label>
+						<input ng-disabled="!selected_attribute" title="Please select a finish" data-dims="'.htmlspecialchars(json_encode($max_dimensions)).'" input-width-restraints ng-model="input_width" ng-change="bd_get_price(input_width, input_drop, selected_attribute, productQuantity)" type="number" name="wpti_x" placeholder="Please select a finish" class="wpti-product-size" id="wpti-product-x">
+					    <label style="width:25%;" for="wpti-product-y" data-toggle="tooltip" data-placement="right" title="Enter drop in Millimeters (mm)">Drop <small>(mm)</small></label>
+					    <input ng-disabled="!selected_attribute" title="Please select a finish" data-dims="'.htmlspecialchars(json_encode($max_dimensions)).'" input-drop-restraints ng-model="input_drop" ng-change="bd_get_price(input_width, input_drop, selected_attribute, productQuantity)" type="number" name="wpti_y" placeholder="Please select a finish" class="wpti-product-size" id="wpti-product-y">
+						<div ng-disabled="!selected_attribute" title="Please select a finish" data-dims="'.htmlspecialchars(json_encode($max_dimensions)).'" class="button calculate-price" custom-validation ng-click="bd_get_price(input_width, input_drop, selected_attribute, productQuantity)">Calculate</div>
+					</div>';
 					echo $output;
 				}
 			}
@@ -525,27 +533,45 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
 				global $woocommerce;
 
 				$addons = array();
-				$version_comparison = version_compare($woocommerce->version, '2.1');
+				$version_comparison = version_compare( $woocommerce->version, '2.1' );
 				$wc_get_attribute_taxonomy_names_exists = function_exists('wc_get_attribute_taxonomy_names');
-				$attr_tax = ($version_comparison >= 0 && $wc_get_attribute_taxonomy_names_exists)
+				$attr_tax = ( $version_comparison >= 0 && $wc_get_attribute_taxonomy_names_exists )
 					? wc_get_attribute_taxonomy_names() // from 2.1
-					: (method_exists($woocommerce, 'get_attribute_taxonomy_names')
+					: ( method_exists( $woocommerce, 'get_attribute_taxonomy_names' )
 						? $woocommerce->get_attribute_taxonomy_names() // pre 2.1
-						: array());
+						: array() );
 
-				foreach ($attr_tax as $taxonomy) {
-					$name = $this->normalize_taxonomy_name($taxonomy);
-					$addons[$taxonomy] = array(
+				foreach ( $attr_tax as $taxonomy ) {
+					$name = $this->normalize_taxonomy_name( $taxonomy );
+					$addons[ $taxonomy ] = array(
 						'normalized_name' => $name,
 						'slug' => $taxonomy,
 						'terms' => array()
 					);
 				}
 
-				$terms = get_terms($attr_tax);
-				$this->fill_taxonomy_terms($terms, $addons);
+				$terms = get_terms( $attr_tax );
+				$this->fill_taxonomy_terms( $terms, $addons );
 				return $addons;
-			}				 									
+			}
+
+			public  function get_products_categories() {
+				global $woocommerce;
+
+				$taxonomy = 'product_cat';
+				$normalized_name = 'Product Category';
+				
+				$array = array(
+					$taxonomy => array(
+						'normalized_name' => $normalized_name,
+						'terms' => array()
+					)
+				);
+
+				$terms = get_terms( $taxonomy );
+				$this->fill_taxonomy_terms( $terms, $array );
+				return $array;
+			}							 									
 
 		}
 

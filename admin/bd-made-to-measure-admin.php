@@ -32,6 +32,8 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
 					add_action( 'wp_ajax_bd_ajax_save_markup_data', array( &$this, 'bd_ajax_save_markup_data' ) );
 					// Get price books
 					add_action( 'wp_ajax_get_price_book_ajax', array( &$this, 'get_price_book_ajax' ) );
+					// Upload result ajax
+					add_action( 'wp_ajax_bd_price_import_ajax', array( &$this, 'bd_price_import_ajax' ) );
 				}
 
 			}
@@ -46,20 +48,28 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
 
 
 			/**
-			 * Admin Settings
+			 * Admin Menu Settings
 			 */	
 			public function bd_admin_page() {
-				$bd_page = add_menu_page(
-			        'Blinds Made to Measure',
-			        'Blinds Made to Measure',
-			        'administrator',
-			        'blinds-made-to-measure',
-			        array( &$this, 'bd_settings'),
-			        'dashicons-admin-generic'
-			  );
-			  // Load the JS conditionally
-			  add_action( 'load-' . $bd_page, array( &$this, 'load_admin_js' ) );				
+				// Main Page
+				$bd_main_page = add_menu_page( 'Made to Measure', 'Made to Measure', 'administrator', 'blinds-made-to-measure', array( &$this, 'bd_settings'), 'dashicons-admin-generic' );
+				// Markup Page
+		    	$bd_markup_page = add_submenu_page( 'blinds-made-to-measure', 'Add Markup', 'Add Markup', 'manage_options', 'bd-add-price-markup', array( &$this, 'bd_settings' ) );
+		    	// Price importer page
+		    	$bd_import_page = add_submenu_page( 'blinds-made-to-measure', 'Price Importer', 'Price Importer', 'manage_options', 'bd-price-import', array( &$this, 'bd_price_importer' ) );
+		    	// Settings Page
+		    	$bd_settings_page = add_submenu_page( 'blinds-made-to-measure', 'Settings', 'Settings', 'manage_options', 'bd-plugin-settings', array( &$this, 'bd_plugin_settings' ) );
+		    	// Upload preview
+		    	$bd_import_preview = add_submenu_page( null, null, null, 'manage_options', 'bd-price-import-preview', array( &$this, 'bd_price_import_preview' ) );
+		    	// Upload result
+		    	$bd_import_result = add_submenu_page( null, null, null, 'manage_options', 'bd-price-import-result', array( &$this, 'bd_price_import_result' ) );
+			    // Load the JS conditionally
+			    add_action( 'load-' . $bd_main_page, array( &$this, 'load_admin_js' ) );				
+			    add_action( 'load-' . $bd_markup_page, array( &$this, 'load_admin_js' ) );
+			    add_action( 'load-' . $bd_settings_page, array( &$this, 'load_admin_js' ) );
+			    add_action( 'load-' . $bd_import_page, array( &$this, 'load_admin_js' ) );
 			}
+
 
 
 			/**
@@ -123,6 +133,50 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
 
 			}
 
+
+			/**
+			 * TODO - Plugin settings page
+			 */	
+			public function bd_price_import_ajax() {
+				//echo "string";
+				require_once plugin_dir_path(__FILE__) . 'bd-price-import-ajax.php';
+				die();
+			}
+
+
+			/**
+			 * TODO - Plugin settings page
+			 */	
+			public function bd_plugin_settings() {
+				// ...
+
+				echo "Hello World!";
+			}
+
+
+			/**
+			 * TODO - Plugin settings page
+			 */	
+			public function bd_price_import_result() {
+				include plugin_dir_path( __FILE__ ) .'bd-price-import-result.php';
+			}			
+
+
+			/**
+			 * TODO - Plugin settings page
+			 */	
+			public function bd_price_import_preview() {
+				include plugin_dir_path( __FILE__ ) .'bd-price-import-preview.php';
+			}			
+
+
+			/**
+			 * TODO - Price importer page
+			 */	
+			public function bd_price_importer() {
+				include plugin_dir_path( __FILE__ ) .'bd-price-importer.php';
+			}			
+
 			
 			/**
 			 * include html for admin area
@@ -138,6 +192,29 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
 			public function get_product_addons() {
 				return parent::get_product_addons();
 			}
+
+
+			/**
+			 * get_products_categories call parent function
+			 */	
+			public function get_products_categories() {
+				return parent::get_products_categories();
+			}
+
+
+			/**
+			 * normalize_taxonomy_name call parent function
+			 */	
+			public function normalize_taxonomy_name($name, $prefix = 'pa_') {
+				return parent::normalize_taxonomy_name($name, $prefix = 'pa_');
+			}
+
+
+			//Remove the ':' character from the end of field labels
+			public function optionize_labels($field_label) {
+				$label_parts = explode(':', $field_label);
+				return $label_parts[0];
+			}							
 
 
 			/**
