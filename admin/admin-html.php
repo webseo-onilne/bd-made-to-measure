@@ -10,18 +10,18 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 ?>
 
-
+<h3 class="page-title">Markup Manager</h3>
 <div class="wrap woocommerce" ng-app="curtainManager" ng-controller="curtainCtrl">
-		<p>Select Price Group</p>
 		<hr>
 		<?php 
 
 			$variations = $this->get_product_addons();
 			$names = array();
 
-			echo "Price Group";
+			echo "Select a Price Sheet: ";
 			echo "<select class='variation-options_check' ng-model='curtaingroup' ng-change='getCurtainPrices(curtaingroup)'>";
 				echo "<option value='undefined'>Please Select</option>"; 
+				echo "<option value='95'>Shutters</option>";
 				foreach ($variations as $attname => $addon) {
 					$names[] = $attname;
 					echo "<option value='". $attname ."'>" . str_replace(array("pa_", "-"), " ", $attname) . "</option>";
@@ -31,7 +31,16 @@ if ( ! defined( 'ABSPATH' ) ) {
 		?>			
 	<hr />
 	<div class="table-wrapper">
-		<p>Prices</p>
+		<h4 class="sub-title">Prices</h4> 
+		<label style="float: right;margin-top: -34px;margin-right: 92px;" for="show-pagelimit">Show</label>
+		<select id="show-pagelimit" style="float: right;margin-top: -38px;" ng-model="pageLimit">
+			<option value="10">10</option>
+			<option value="20">20</option>
+			<option value="30">30</option>
+			<option value="40">40</option>
+			<option value="50">50</option>
+			<option ng-value="showAll">Show All</option>
+		</select>
 		<hr>
 		<table id="variation-table" class="wp-list-table widefat fixed striped posts">
 			<thead>
@@ -43,7 +52,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 				</tr>
 			</thead>
 			<tbody>
-				<tr ng-repeat="item in allPrices">
+				<tr ng-repeat="item in allPrices | limitTo: pageLimit">
 					<td ng-cloak>{{item.width}}</td>
 					<td ng-cloak>{{item.height}}</td>
 					<td ng-cloak>R {{item.price}}</td>
@@ -55,7 +64,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
     <div style="width: 48%; float:left;">
 
-		<p>Add Mark Up {{selectedGroup}}</p>
+		<h4 class="sub-title">Add Mark Up <span ng-cloak><strong>{{selectedGroup}}</strong></span></h4>
 		<hr>
 		<table id="input-table" class="wp-list-table widefat fixed striped posts">
 			<thead>

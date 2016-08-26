@@ -5,10 +5,13 @@ app
 
     $scope.selected_attribute = '';
     $scope.productQuantity = 1;
+    $scope.showLoader = false; 
 
     $scope.bd_get_price = function(width, drop, selectedSwatch, qty) {
 
       if (!width || !drop || !selectedSwatch || parseInt(drop) < 500) return;
+
+      $scope.showLoader = true; 
 
       DataLoader.getBlindsPrices(width, drop, selectedSwatch).then(function(response) {
         console.log(response.data);
@@ -25,8 +28,19 @@ app
         $scope.finalPrice = price.toFixed(2);
         // Add currency symbol to scope
         $scope.currencySymbol = response.data.currency;
+        
+        $scope.showLoader = false; 
       });
 
     }
 
-  });  
+
+    $scope.increment = function(val) {
+      $scope.productQuantity = val + 1;
+    }
+    $scope.decrement = function(val) {
+      if (val <= 1) return;
+      $scope.productQuantity = val - 1;
+    }     
+
+  })

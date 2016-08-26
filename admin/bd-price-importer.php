@@ -33,11 +33,24 @@ $addons_result = $wpdb->get_results($addons_sql);
 
 ?>
 <div class="woo_product_importer_wrapper wrap">
-	<div id="icon-tools" class="icon32"><br /></div>
-	<?php echo 'Upload'; ?>
-	<form enctype="multipart/form-data" method="post" action="<?php echo get_admin_url() ?>admin.php?page=bd-price-import-preview">
+	<h3 class="page-title">Import Price Sheets</h3> <span><a href="#">Curtains</a></span><hr />
+	<form class="uploadform" enctype="multipart/form-data" method="post" action="<?php echo get_admin_url() ?>admin.php?page=bd-price-import-preview">
 		<p>
-			<label for="import_csv">File to Import</label>
+			<h4>Choose a file to Import</h4>
+		</p>
+		<p>
+			<input type="file" name="import_csv">
+		</p>
+		<p>
+			<button class="button-primary" type="submit">Upload and Preview</button>
+		</p>
+	</form>
+
+	<form style="display:none;" class="uploadformshutters" enctype="multipart/form-data" method="post" action="<?php echo get_admin_url() ?>admin.php?page=bd-price-import-preview">
+		<p>
+			<h4>Choose a file to Import</h4>
+		</p>
+		<p>
 			<input type="file" name="import_csv">
 		</p>
 		<p>
@@ -48,7 +61,7 @@ $addons_result = $wpdb->get_results($addons_sql);
 
 <?php if (count($product_cat_result) || count($addons_result)): ?>
 	<hr>
-	<h3>Uploaded Price Sheets</h3>
+	<h3 class="page-title">Uploaded Price Sheets</h3>
 	<table border="1" cellspaing="0" cellpadding="5" style="border-collapse:collapse;min-width:500px">
 <?php if (count($product_cat_result)): ?>
 		<tr>

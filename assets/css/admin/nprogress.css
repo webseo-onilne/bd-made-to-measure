@@ -75,3 +75,53 @@
     max-height: 800px;
     overflow-x: auto;
 }
+
+h3.page-title {
+    background: url('http://stage.blindsdirect.co.za/wp-content/uploads/2016/05/roller-blinds-icon.png');
+    background-repeat: no-repeat;
+    padding-left: 30px;
+    padding-bottom: 5px;
+    background-size: contain;
+    padding-top: 5px;
+}
+
+h4.sub-title {
+    width: 50%;
+}
+
+.option {
+    min-width: 30%;
+    background: #ffffff;
+    float: left;
+    margin-right: 5px;
+    text-align: center;
+    min-height: 100px;
+    padding: 10px;
+    box-shadow: 0 1px 1px rgba(0,0,0,.04);
+    border: 1px solid #e5e5e5;
+    transition: all .5s;
+}
+.option a {
+    padding: 50px;
+    /* margin-top: 50px; */
+    display: block;
+    text-decoration: none;
+    font-size: 150%;
+}
+
+.options-wrap {
+    /* display: inline-block; */
+    width: 95%;
+    margin: 0 auto;
+}
+
+.option:hover {
+    background: ghostwhite;
+}
+form.uploadform {
+    background: #ffffff;
+    padding: 30px;
+    border: 1px solid #e5e5e5;
+    -webkit-box-shadow: 0 1px 1px rgba(0,0,0,.04);
+    box-shadow: 0 1px 1px rgba(0,0,0,.04);
+}

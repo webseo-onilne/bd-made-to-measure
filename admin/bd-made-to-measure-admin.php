@@ -52,9 +52,9 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
 			 */	
 			public function bd_admin_page() {
 				// Main Page
-				$bd_main_page = add_menu_page( 'Made to Measure', 'Made to Measure', 'administrator', 'blinds-made-to-measure', array( &$this, 'bd_settings'), 'dashicons-admin-generic' );
+				$bd_main_page = add_menu_page( 'Made to Measure', 'Made to Measure', 'administrator', 'blinds-made-to-measure', array( &$this, 'bd_plugin_home'), 'dashicons-admin-generic' );
 				// Markup Page
-		    	$bd_markup_page = add_submenu_page( 'blinds-made-to-measure', 'Add Markup', 'Add Markup', 'manage_options', 'bd-add-price-markup', array( &$this, 'bd_settings' ) );
+		    	$bd_markup_page = add_submenu_page( 'blinds-made-to-measure', 'Markup Manager', 'Markup Manager', 'manage_options', 'bd-add-price-markup', array( &$this, 'bd_settings' ) );
 		    	// Price importer page
 		    	$bd_import_page = add_submenu_page( 'blinds-made-to-measure', 'Price Importer', 'Price Importer', 'manage_options', 'bd-price-import', array( &$this, 'bd_price_importer' ) );
 		    	// Settings Page
@@ -87,7 +87,7 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
 			    // Enqueue Toastr js
 			    wp_enqueue_script( 
 			        'toastr',
-			        'https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js',
+			        'https://cdnjs.cloudflare.com/ajax/libs/toastr.js/2.1.3/toastr.min.js',
 			        array( 'jquery' )
 			    );
 
@@ -114,7 +114,7 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
 			     // Register Toastr CSS
 			     wp_register_style( 
 			         'custom_wp_admin_css',
-			         'https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/css/toastr.min.css',
+			         'https://cdnjs.cloudflare.com/ajax/libs/toastr.js/2.1.3/toastr.min.css',
 			         false,
 			         '1.0.0'
 			     );
@@ -187,6 +187,14 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
 
 
 			/**
+			 * include html for admin area
+			 */	
+			public function bd_plugin_home() { 
+				include plugin_dir_path( __FILE__ ) .'admin-landing-page.php';
+			}			
+
+
+			/**
 			 * get_product_addons call parent function
 			 */	
 			public function get_product_addons() {
@@ -235,7 +243,7 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
 				      $results = $wpdb->last_error;
 				    }
 				    
-				    echo json_encode($results);		
+				    echo json_encode( $results );		
 
 				}
 
@@ -259,13 +267,24 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
 					$add_markup = $wpdb->query("INSERT INTO `wp_woocommerce_markup_manager_rules` (variation, {$markup_group}) 
 						VALUES ('$variation_name', '$markup_data') ON DUPLICATE KEY UPDATE {$markup_group} = '$markup_data' " );
 
-					$results = $wpdb->get_results( "SELECT * FROM `wp_woocommerce_addon_price_table` 
-						INNER JOIN `wp_woocommerce_markup_manager_rules` 
-						ON `wp_woocommerce_addon_price_table`.`field_label` = `wp_woocommerce_markup_manager_rules`.`variation` 
-						WHERE `field_label` = '$variation_name' ", OBJECT );
+					if ( $variation_name == '95' ) {
+
+						$results = $wpdb->get_results( "SELECT * FROM `wp_woocommerce_cat_price_table` 
+							INNER JOIN `wp_woocommerce_markup_manager_rules` 
+							ON `wp_woocommerce_cat_price_table`.`term_id` = `wp_woocommerce_markup_manager_rules`.`variation` 
+							WHERE `term_id` = '$variation_name' ", OBJECT );
+
+					}
+					else {
+
+						$results = $wpdb->get_results( "SELECT * FROM `wp_woocommerce_addon_price_table` 
+							INNER JOIN `wp_woocommerce_markup_manager_rules` 
+							ON `wp_woocommerce_addon_price_table`.`field_label` = `wp_woocommerce_markup_manager_rules`.`variation` 
+							WHERE `field_label` = '$variation_name' ", OBJECT );
+					}
 					
 					// Send the reponse back
-					echo empty($add_markup) ? json_encode($wpdb->last_error) : json_encode($results);
+					echo empty( $add_markup ) ? json_encode( $wpdb->last_error ) : json_encode( $results );
 
 				}
 
@@ -283,18 +302,36 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
 
 					$group  = $_GET['group'];
 
-					$results = $wpdb->get_results( "SELECT * FROM `wp_woocommerce_addon_price_table` 
-						INNER JOIN `wp_woocommerce_markup_manager_rules` 
-						ON `wp_woocommerce_addon_price_table`.`field_label` = `wp_woocommerce_markup_manager_rules`.`variation` 
-						WHERE `field_label` = '$group' ", OBJECT );
+					// Shutters
+					if ( $group == '95' ) {
 
-				    if (!$results) {
-				    	// Build and execute the query
-					    $results = $wpdb->get_results( "SELECT * FROM `wp_woocommerce_addon_price_table` 
-					        WHERE `field_label` = '$group' ", OBJECT );	      
-				    }
+						$results = $wpdb->get_results( "SELECT * FROM `wp_woocommerce_cat_price_table` 
+							INNER JOIN `wp_woocommerce_markup_manager_rules` 
+							ON `wp_woocommerce_cat_price_table`.`term_id` = `wp_woocommerce_markup_manager_rules`.`variation` 
+							WHERE `term_id` = '$group' ", OBJECT );
+
+					    if (!$results) {
+					    	// Build and execute the query
+						    $results = $wpdb->get_results( "SELECT * FROM `wp_woocommerce_cat_price_table` 
+						        WHERE `term_id` = '$group' ", OBJECT );	      
+					    }
+					} 
+					// Blinds
+					else {
+
+						$results = $wpdb->get_results( "SELECT * FROM `wp_woocommerce_addon_price_table` 
+							INNER JOIN `wp_woocommerce_markup_manager_rules` 
+							ON `wp_woocommerce_addon_price_table`.`field_label` = `wp_woocommerce_markup_manager_rules`.`variation` 
+							WHERE `field_label` = '$group' ", OBJECT );
+
+					    if (!$results) {
+					    	// Build and execute the query
+						    $results = $wpdb->get_results( "SELECT * FROM `wp_woocommerce_addon_price_table` 
+						        WHERE `field_label` = '$group' ", OBJECT );	      
+					    }
+					}
 				    
-				    echo json_encode($results ? $results : $wpdb->last_error);		
+				    echo json_encode( $results ? $results : $wpdb->last_error );		
 
 				}
 

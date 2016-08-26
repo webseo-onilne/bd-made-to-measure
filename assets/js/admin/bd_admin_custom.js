@@ -27,6 +27,7 @@ jQuery(document).ready(function ($) {
       $scope.curtaingroup = 'undefined';
       $scope.filterby = '';
       $scope.liningFilter = '';
+      $scope.pageLimit = '10';
 
       $scope.getCurtainPrices = function(curtainGroup) { 
         NProgress.start();
@@ -48,6 +49,7 @@ jQuery(document).ready(function ($) {
           $scope.selectedGroupActaual = curtainGroup;
           $scope.selectedGroup = curtainGroup;
           $scope.allPrices = response.data;
+          $scope.showAll = response.data.length;
           NProgress.done();
         });
 
@@ -78,10 +80,11 @@ jQuery(document).ready(function ($) {
             'markup_by': range2Data.markup_by
           };
 
+          if (!range3Data) return;
           $scope.range3 = {
-            'to': range3Data.to,
-            'from': range3Data.from,
-            'markup_by': range3Data.markup_by
+            'to': range3Data.to ? range3Data.to : 0,
+            'from': range3Data.from ? range3Data.from : 0,
+            'markup_by': range3Data.markup_by ? range3Data.markup_by : 0
           };                    
         });
       }

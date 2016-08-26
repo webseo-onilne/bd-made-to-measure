@@ -15,8 +15,8 @@ jQuery(document).ready(function ($) {
             // otherwise it adds the prices together
             // Also - activate the input feilds
             $('.reset_variations').trigger('click');
-            $('#wpti-product-x').attr({'disabled': false, 'title': '', 'placeholder': 'Enter a width'});
-            $('#wpti-product-y').attr({'disabled': false, 'title': '', 'placeholder': 'Enter a drop'});
+            $('#wpti-product-x').attr({'disabled': false, 'title': '', 'placeholder': 'Enter a width'}).prev('label').attr('data-original-title', 'Enter width in Millimeters (mm)');
+            $('#wpti-product-y').attr({'disabled': false, 'title': '', 'placeholder': 'Enter a drop'}).prev('label').attr('data-original-title', 'Enter drop in Millimeters (mm)');;
             $('.calculate-price').attr({'disabled': false, 'title': ''})
 
             // Remove any other finish that has the 'selected' class
@@ -63,6 +63,32 @@ jQuery(document).ready(function ($) {
         $form.on('woocommerce_variation_has_changed', function () {
             $('input[name="variation_id"]').val(variationId);
         });
-    });    
+    }); 
+
+
+    /*
+    * For Curtains only:
+    * On change of the lining selection
+    * trigger the calculate price button
+    * [Product page]
+    */
+    $('select[name="addon-7400-lining"]').on('change', function() {
+        $('.calculate-price').trigger('click');
+    });
+
+
+    /*
+    * For Curtains only:
+    * On change of the style selection
+    * trigger the calculate price button
+    * [Product page]
+    */
+    $('.product-addon-curtain-style').find('input').each(function() {
+        $(this).on('change', function() {
+            $('.calculate-price').trigger('click');
+        });
+    });
 
 });
+
+

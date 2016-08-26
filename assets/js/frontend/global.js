@@ -11,9 +11,9 @@ app
         // lookup
         return $http.get(blinds.ajax_url+'?action=bd_do_price_calcuation_ajax&width='+width+'&drop='+drop+'&selected_attribute='+attr);
       },
-      getCurtainPrices: function(width, height) {
+      getCurtainPrices: function(width, drop, attr, lining, style) {
         // lookup
-        return $http.get(blinds.ajax_url+'?action=bd_do_price_calcuation_ajax');
+        return $http.get(blinds.ajax_url+'?action=bd_do_curtains_price_calcuation_ajax&width='+width+'&drop='+drop+'&selected_attribute='+attr+'&lining='+lining+'&style='+style);
       },
       getShutterPrices: function(width, height) {
         // lookup
@@ -27,7 +27,12 @@ app
     return {
       restrict: 'A',
       link: function(scope, element, attrs) {
-        var $_ = jQuery, selectOption = $_.find('.select-option');    
+        var $_ = jQuery, selectOption = $_.find('.select-option');
+        // $_('.variations_form').on('change', function() {
+        //   console.log('variations form changed');
+        //   //scope.bd_get_price(scope.input_width, scope.input_drop, scope.selected_attribute, scope.productQuantity);
+        // });
+
         $_(selectOption).on('click', function() {
           scope.selected_attribute = $_(this).closest('tr').find('select').attr('id');
         });
@@ -52,25 +57,23 @@ app
     }
   })
 
-  .directive('changeQuantity', function () {
+  .directive('changeQuantity', function ($timeout) {
     return {
       restrict: 'A',
       link: function(scope, element, attrs) {
-        let $_ = jQuery; 
-        let plus = element.next();
-        let minus = $_(element).prev('input');
+        $timeout(function() {
+          let $_ = jQuery; 
+          let plus = element.next();
+          let minus = $_(element).prev('span');
 
-        plus.on('click', function() {
-          if (parseInt(element.val()) < 1) return;
-          scope.productQuantity = parseInt(element.val())+1;
-          scope.bd_get_price(scope.input_width, scope.input_drop, scope.selected_attribute, parseInt(element.val())+1);
-        });
+          plus.on('click', function() {
+            scope.bd_get_price(scope.input_width, scope.input_drop, scope.selected_attribute, scope.productQuantity);
+          });
 
-        minus.on('click', function() {
-          if (parseInt(element.val()) <= 1) return;
-          scope.productQuantity = parseInt(element.val())-1;
-          scope.bd_get_price(scope.input_width, scope.input_drop, scope.selected_attribute, parseInt(element.val())-1);
-        });        
+          minus.on('click', function() {
+            scope.bd_get_price(scope.input_width, scope.input_drop, scope.selected_attribute, scope.productQuantity);
+          }); 
+        });       
       }
     };
   })
@@ -79,23 +82,30 @@ app
     return {
       restrict: 'A',
       link: function(scope, element, attrs) {
-        element.on('change', function() {
+        element.on('change input', function() {
           let userInput = element.val();
           let selectedAttr = scope.selected_attribute;
-          let restraints = angular.fromJson(attrs.dims)[selectedAttr][0];          
-          if (userInput < parseInt(restraints.min_width)) {
+          let restraints = angular.fromJson(attrs.dims)[selectedAttr][0];
+          let inputHeight = jQuery('#wpti-product-y').val();
+          let inputWidth = jQuery('#wpti-product-x').val();                  
+          if ( (userInput < parseInt(restraints.min_width)) && (inputWidth.length >= 3 && inputHeight.length >= 3)) {
             element.css('border', '1px solid red').addClass('invalid').removeClass('valid');
-            $timeout(function(){scope.finalPrice = undefined},700);
-          } else if (userInput > parseInt(restraints.max_width)) {
+            jQuery('.notice').html('Error, Minimum Width: '+parseInt(restraints.min_width)).css('color', 'red');
+          } else if ( (userInput > parseInt(restraints.max_width)) && (inputWidth.length >= 3 && inputHeight.length >= 3)) {
             element.css('border', '1px solid red').addClass('invalid').removeClass('valid');
-            $timeout(function(){scope.finalPrice = undefined},700);
+            jQuery('.notice').html('Error, Maximum Width: '+parseInt(restraints.max_width)).css('color', 'red');
           } else {
             element.css('border', '1px solid #cccccc').removeClass('invalid').addClass('valid');
+            jQuery('.notice').html('').css('color', 'black');
           } 
           if (jQuery('.valid').length === 2) {
-              jQuery('.single_add_to_cart_button').removeClass('disabled wc-variation-selection-needed');
+              jQuery('.single_variation_wrap, .final-price').fadeIn();
+              jQuery('.single_add_to_cart_button').removeClass('disabled wc-variation-selection-needed').attr('disabled', false);
           } else {
-            jQuery('.single_add_to_cart_button').addClass('disabled wc-variation-selection-needed');
+            if ( (inputWidth && inputHeight) && (inputWidth.length >= 3 && inputHeight.length >= 3) ) {
+              jQuery('.single_variation_wrap, .final-price').fadeOut();
+              jQuery('.single_add_to_cart_button').addClass('disabled wc-variation-selection-needed').attr('disabled', true);
+            }
           }                   
         });
       }
@@ -106,23 +116,35 @@ app
     return {
       restrict: 'A',
       link: function(scope, element, attrs) {
-        element.on('change', function() {
+        element.on('change input', function() {
           let userInput = element.val();
           let selectedAttr = scope.selected_attribute;
-          let restraints = angular.fromJson(attrs.dims)[selectedAttr][0];          
+          let restraints = angular.fromJson(attrs.dims)[selectedAttr][0];
+          let inputHeight = jQuery('#wpti-product-y').val();
+          let inputWidth = jQuery('#wpti-product-x').val();
           if (userInput < parseInt(restraints.min_drop)) {
-            element.css('border', '1px solid red').addClass('invalid').removeClass('valid');
-            $timeout(function(){scope.finalPrice = undefined},700);
+            if (inputWidth.length >= 3 && inputHeight.length >= 3) {
+              //console.log(userInput);
+              element.css('border', '1px solid red').addClass('invalid').removeClass('valid');
+              jQuery('.notice').html('Error, Minimum Drop: '+parseInt(restraints.min_drop)).css('color', 'red');
+            }
           } else if (userInput > parseInt(restraints.max_drop)) {
-            element.css('border', '1px solid red').addClass('invalid').removeClass('valid');
-            $timeout(function(){scope.finalPrice = undefined},700);
+            if (inputWidth.length >= 3 && inputHeight.length >= 3) {
+              element.css('border', '1px solid red').addClass('invalid').removeClass('valid');
+              jQuery('.notice').html('Error, Maximum Drop: '+parseInt(restraints.max_drop)).css('color', 'red'); 
+            }
           } else {
             element.css('border', '1px solid #cccccc').removeClass('invalid').addClass('valid');
+            jQuery('.notice').html('').css('color', 'black');
           }
           if (jQuery('.valid').length === 2) {
-              jQuery('.single_add_to_cart_button').removeClass('disabled wc-variation-selection-needed');
+              jQuery('.single_variation_wrap, .final-price').fadeIn();
+              jQuery('.single_add_to_cart_button').removeClass('disabled wc-variation-selection-needed').attr({'disabled': false, 'title': ''});
           } else {
-            jQuery('.single_add_to_cart_button').addClass('disabled wc-variation-selection-needed');
+            if ( (inputWidth && inputHeight) && (inputWidth.length >= 3 && inputHeight.length >= 3) ) {
+              jQuery('.single_variation_wrap, .final-price').fadeOut();
+              jQuery('.single_add_to_cart_button').addClass('disabled wc-variation-selection-needed').attr('disabled', true);
+            }
           }                   
         });
       }
@@ -136,9 +158,9 @@ app
         var $_ = jQuery;   
         element.on('click', function() {
           if (jQuery('.valid').length === 2) {
-              jQuery('.single_add_to_cart_button').removeClass('disabled wc-variation-selection-needed');
+              jQuery('.single_add_to_cart_button').removeClass('disabled wc-variation-selection-needed').attr({'disabled': false, 'title': ''});
           } else {
-            jQuery('.single_add_to_cart_button').addClass('disabled wc-variation-selection-needed');
+            jQuery('.single_add_to_cart_button').addClass('disabled wc-variation-selection-needed').attr('disabled', true);
           }
         });
       }
