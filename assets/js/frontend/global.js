@@ -28,10 +28,6 @@ app
       restrict: 'A',
       link: function(scope, element, attrs) {
         var $_ = jQuery, selectOption = $_.find('.select-option');
-        // $_('.variations_form').on('change', function() {
-        //   console.log('variations form changed');
-        //   //scope.bd_get_price(scope.input_width, scope.input_drop, scope.selected_attribute, scope.productQuantity);
-        // });
 
         $_(selectOption).on('click', function() {
           scope.selected_attribute = $_(this).closest('tr').find('select').attr('id');
@@ -90,10 +86,10 @@ app
           let inputWidth = jQuery('#wpti-product-x').val();                  
           if ( (userInput < parseInt(restraints.min_width)) && (inputWidth.length >= 3 && inputHeight.length >= 3)) {
             element.css('border', '1px solid red').addClass('invalid').removeClass('valid');
-            jQuery('.notice').html('Error, Minimum Width: '+parseInt(restraints.min_width)).css('color', 'red');
+            jQuery('.notice').html(blinds.min_width_error +': '+parseInt(restraints.min_width)).css('color', 'red');
           } else if ( (userInput > parseInt(restraints.max_width)) && (inputWidth.length >= 3 && inputHeight.length >= 3)) {
             element.css('border', '1px solid red').addClass('invalid').removeClass('valid');
-            jQuery('.notice').html('Error, Maximum Width: '+parseInt(restraints.max_width)).css('color', 'red');
+            jQuery('.notice').html(blinds.max_width_error + ': '+parseInt(restraints.max_width)).css('color', 'red');
           } else {
             element.css('border', '1px solid #cccccc').removeClass('invalid').addClass('valid');
             jQuery('.notice').html('').css('color', 'black');
@@ -124,14 +120,13 @@ app
           let inputWidth = jQuery('#wpti-product-x').val();
           if (userInput < parseInt(restraints.min_drop)) {
             if (inputWidth.length >= 3 && inputHeight.length >= 3) {
-              //console.log(userInput);
               element.css('border', '1px solid red').addClass('invalid').removeClass('valid');
-              jQuery('.notice').html('Error, Minimum Drop: '+parseInt(restraints.min_drop)).css('color', 'red');
+              jQuery('.notice').html(blinds.min_drop_error + ': '+parseInt(restraints.min_drop)).css('color', 'red');
             }
           } else if (userInput > parseInt(restraints.max_drop)) {
             if (inputWidth.length >= 3 && inputHeight.length >= 3) {
               element.css('border', '1px solid red').addClass('invalid').removeClass('valid');
-              jQuery('.notice').html('Error, Maximum Drop: '+parseInt(restraints.max_drop)).css('color', 'red'); 
+              jQuery('.notice').html(blinds.max_drop_error + ': '+parseInt(restraints.max_drop)).css('color', 'red'); 
             }
           } else {
             element.css('border', '1px solid #cccccc').removeClass('invalid').addClass('valid');

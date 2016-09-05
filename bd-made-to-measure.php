@@ -3,11 +3,11 @@
 Plugin Name: Blinds Direct - Made to Measure
 Plugin URI: https://github.com/michaeldoye/bd-made-to-measure
 Description: Tools for Blinds Direct
-Author: Web SEO Online
-Author URI: http://webseo.co.za
+Author: Web SEO Online (PTY) LTD
+Author URI: https://webseo.co.za
 Version: 0.0.1
 
-	Copyright: © 2016 Web SEO Online (email : michael@webseo.co.za)
+	Copyright: © 2016 Web SEO Online (PTY) LTD (email : michael@webseo.co.za)
 	License: GNU General Public License v3.0
 	License URI: http://www.gnu.org/licenses/gpl-3.0.html
 */
@@ -94,11 +94,13 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
 
 				// Angular and global scripts
 				if ( is_product() && $this->product_has_price_table( $post->ID ) ) {
+					// JS Scripts
 					wp_enqueue_script( 'angular_js', plugin_dir_url( __FILE__ ) . 'assets/js/frontend/angular-1.4.6-min.js' );
 					wp_enqueue_script( 'global_js', plugin_dir_url( __FILE__ ) . 'assets/js/frontend/global.js', array( 'angular_js', 'jquery', 'jquery-ui-core' ) );
 					wp_enqueue_script( 'jquery_custom', plugin_dir_url( __FILE__ ) . 'assets/js/frontend/jquery_custom.js', array( 'jquery', 'jquery-ui-core' ) );
 					wp_enqueue_script( 'bs_custom_js', plugin_dir_url( __FILE__ ) . 'assets/bootstrap/bootstrap.min.js', array( 'jquery', 'jquery-ui-core' ) );
 					wp_enqueue_script( 'qtip_js', plugin_dir_url( __FILE__ ) . 'assets/js/frontend/qtip.js' );
+					// CSS Styles
 			        wp_register_style( 'qtip_css', plugin_dir_url( __FILE__ ) .'assets/css/frontend/qtip.css', array(), '20130608' );
 					wp_register_style( 'bs_custom_css', plugin_dir_url( __FILE__ ) . 'assets/bootstrap/bootstrap.min.css', false, '1.0.0' );
 
@@ -124,13 +126,19 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
 				// Create local variables here for the global.js file
 				wp_localize_script( 'global_js', 'blinds', array(
 					'ajax_url' => admin_url( 'admin-ajax.php' ),
-					'product_id' => $post->ID
+					'product_id' => $post->ID,
+					'max_width_error' => get_option('max_width_error_message'),
+					'min_width_error' => get_option('min_width_error_message'),
+					'max_drop_error' => get_option('max_drop_error_message'),
+					'min_drop_error' => get_option('min_drop_error_message')					
 				));
 			}
 
 
 			/**
 			 * Check if a product has a price table attached to it
+			 * @param int $product_id
+			 * @return int
 			 */	
 			protected function product_has_price_table( $product_id ) {
 				global $wpdb;
@@ -151,6 +159,7 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
 
 			/**
 			 * Main Price calc function for blinds product type
+			 * @return array
 			 */			
 			public function bd_do_price_calcuation_ajax() {
 
@@ -173,9 +182,9 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
 			}
 
 
-
 			/**
 			 * Main Price calc function for curtains product type
+			 * @return array			 
 			 */			
 			public function bd_do_curtains_price_calcuation_ajax() {
 
@@ -191,7 +200,7 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
 					$currency = html_entity_decode( get_woocommerce_currency_symbol() );
 					$tax = new WC_Tax();
 					$rates = $tax->find_rates( array( 'country' => 'ZA' ) );					
-					//echo json_encode($result);
+
 					echo json_encode( $result  ? array( 'response' => 'OK', 'price' => $result, 'currency' => $currency, 'tax' => $rates ) : array( 'response' => 'ERROR', 'message' => $result ) );
 
 				}
@@ -202,6 +211,7 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
 
 			/**
 			 * Main Price calc function for shutters product type
+			 * @return array			 
 			 */			
 			public function bd_do_shutters_price_calcuation_ajax() {
 
@@ -215,14 +225,13 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
 					$currency = html_entity_decode( get_woocommerce_currency_symbol() );
 					$tax = new WC_Tax();
 					$rates = $tax->find_rates( array( 'country' => 'ZA' ) );					
-					//echo json_encode($result);
+
 					echo json_encode( $result  ? array( 'response' => 'OK', 'price' => $result, 'currency' => $currency, 'tax' => $rates ) : array( 'response' => 'ERROR', 'message' => $result ) );
 
 				}
 
 				wp_die();				
 			}			
-
 
 
 			/**
@@ -240,13 +249,14 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
 						include 'includes/templates/bd-blinds-inputs.php';
 					}					
 					elseif ( $this->check_bd_product_type() == 'Curtains' ) {
-						// Include curtain dimension inputs 
+						// Include curtains dimension inputs 
 						include 'includes/templates/bd-curtain-inputs.php';
 					}
 					elseif ( $this->check_bd_product_type() == 'Shutters' ) {
 						// Include shutters dimension inputs
 						include 'includes/templates/bd-shutters-inputs.php';
 					}
+
 				}
 			}
 
@@ -256,9 +266,13 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
 			 */	
 			public function bd_schema_price_wrapper() {
 				global $woocommerce, $post;
-				// Include shutters dimension inputs
-				include 'includes/templates/bd-product-price-wrapper.php';				
-			}			
+				
+				if ( $this->product_has_price_table( $post->ID ) ) {			
+					// Include product price wrapper
+					include 'includes/templates/bd-product-price-wrapper.php';
+				}				
+			}	
+
 
 			/**
 			 * Take care of anything that needs woocommerce to be loaded.  
@@ -267,6 +281,7 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
 			public function woocommerce_loaded() {
 				// ...
 			}
+
 			
 			/**
 			 * Take care of anything that needs all plugins to be loaded
@@ -274,6 +289,7 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
 			public function plugins_loaded() {
 				// ...
 			}
+
 			
 			/**
 			 * Override any of the template functions from woocommerce/woocommerce-template.php 
@@ -303,6 +319,7 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
 
 			/**
 			 * Add fields to the metabox
+			 * @param mixed $post
 			 **/
 			public function order_my_custom_prod( $post ){
 			  wp_nonce_field( 'save_bd_product_type', 'bd_product_type_nonce' );
@@ -324,6 +341,7 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
 
 			/**
 			 * Save Product Type
+			 * @param int $post_id
 			 **/
 			public function save_bd_product_type( $post_id ) {
 
@@ -348,6 +366,7 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
 
 			/**
 			 * Check Product Type
+			 * @return string			 
 			 **/
 			public function check_bd_product_type() {
 				global $post;
@@ -355,17 +374,24 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
 			}
 
 
-
 			/**
-			 * Check Product Type2
+			 * Check Product Type using product id:
+			 * usefull when global $post is not available 
+			 * @param int $post_id
+			 * @return string			 
 			 **/
 			public function check_bd_product_type_with_id( $post_id ) {
 				return get_post_meta( $post_id,  '_bd_product_type', true );
 			}
+
 			
 			/**
-			 * Add angular attributes to body tag
-			 * depending on product type
+			 * Add angularJS attributes to body tag
+			 * depending on product type:
+			 * It will string replace the <body> tag to add the
+			 * relevant attributes such as ng-app and ng-controller
+			 * @param string $template
+			 * @return string 
 			 **/
 			public function start_buffer_capture( $template ) {
 
@@ -379,7 +405,9 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
 
 			/**
 			 * Add angular attributes to body tag
-			 * Depending on product type
+			 * depending on product type
+			 * @param string $buffer
+			 * @return string
 			 **/
 			public function end_buffer_capture( $buffer ) {
 
@@ -403,6 +431,9 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
 
 			/**
 			 * Add input data to the cart item
+			 * @param array $cart_item
+			 * @param int $product_id
+			 * @return array
 			 **/
 			public function bd_add_input_data_cart( $cart_item = array(), $product_id = 0 ) {
 				if ( $this->product_has_price_table( $product_id ) ) {
@@ -417,6 +448,9 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
 
 			/**
 			 * Get the cart item from the user session
+			 * @param array $cart_item
+			 * @param array $cart_item_data
+			 * @return array			 
 			 **/
 			public function bd_get_cart_item_from_session( $cart_item, $cart_item_data ) {
 				if ( isset( $cart_item_data['wpti_options'] ) ) {
@@ -429,6 +463,9 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
 
 			/**
 			 * Get the item data (to be used in the cart)
+			 * @param array $item_data
+			 * @param array $cart_item
+			 * @return array			 
 			 **/
 			public function bd_get_item_data( $item_data, $cart_item ) {
 				if ( $this->product_has_price_table( $cart_item['product_id'] ) ) {
@@ -443,6 +480,7 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
 
 			/**
 			 * helper method to retrieve order size in string
+			 * @return string			 
 			 **/
 			protected function get_size_label() {
 				$x_name = 'Width';
@@ -454,6 +492,8 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
 
 			/**
 			 * helper method to retrieve size information in string
+			 * @param array $cart_item
+			 * @return string
 			 **/
 			protected function get_size_string(&$cart_item) {
 				$x_value = number_format( $cart_item['wpti_options']['x'] );
@@ -467,6 +507,9 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
 
 			/**
 			 * Add the item to the cart
+			 * @param array $cart_item
+			 * @param mixed $cart_item_key
+			 * @return array			 
 			 **/
 			public function bd_add_cart_item( $cart_item, $cart_item_key ) {
 				$this->set_price( $cart_item );
@@ -476,6 +519,8 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
 
 			/**
 			 * Add the meta data to the order
+			 * @param int $item_id
+			 * @param array $values			 
 			 **/
 			public function bd_add_order_item_meta( $item_id, $values ) {
 				if ( $this->product_has_price_table( $values['product_id'] ) ) {
@@ -486,6 +531,8 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
 
 			/**
 			 * Add input data to cart item (meta)
+			 * @param array $item_meta
+			 * @param array $cart_item			 
 			 **/
 			public function bd_order_item_meta( $item_meta, $cart_item ) {
 				if ( $this->product_has_price_table( $cart_item['product_id'] ) ) {
@@ -494,21 +541,12 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
 			}
 
 
-			// Check if a product is curtains
-			public function is_curtains_blinds( $pid ) {
-				global $woocommerce;
-				 if ( get_post_meta( $pid, '_bd_product_type', true ) == 'Curtains' ) {
-			     return true;
-			   };
-
-			}
-
-
 			/**
 			 * Set price on the cart item
+			 * @param array $cart_item
 			 **/
 			protected function set_price( &$cart_item ) {
-				//var_dump($cart_item);
+
 				if (array_key_exists( 'addons', $cart_item ) ) {
 
 			        switch ( $cart_item['addons'][1]['value'] ) {
@@ -571,10 +609,6 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
 
 					$wpti  = &$cart_item['wpti_options'];
 
-					// echo "<pre>";
-					// var_dump($cart_item);
-					// echo "</pre>";
-
 					if ( $this->check_bd_product_type_with_id( $cart_item['product_id'] ) == 'Curtains' ) {
 						// Curtains							
 						$price = $this->calculate_curtains_price( $wpti['x'], $group, $lining_type, $style_type );
@@ -594,9 +628,11 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
 			}
 
 
-
 			/**
 			 * Don't show defualt price if product uses price table
+			 * @param float $price
+			 * @param array $instance
+			 * @return null || int
 			 */	
 			public function bd_get_price_html( $price, $instance ) {
 				return $this->product_has_price_table( $instance->id ) ? '' : $price;
@@ -605,10 +641,14 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
 
 			/**
 			 * Calculate price for blinds
+			 * @param int $width
+			 * @param int $drop
+			 * @param string $price_group
+			 * @param array $options			 
+			 * @return string || int			 
 			 **/
 			public function calculate_blinds_price( $width, $drop, $price_group, $options ) {
 				global $wpdb;
-				if ( !$width || !$drop || !$price_group ) continue;
 
 				$price = $wpdb->get_var( $wpdb->prepare(
 					"SELECT price FROM `wp_woocommerce_addon_price_table`
@@ -625,10 +665,14 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
 
 			/**
 			 * Calculate price for curtains
+			 * @param int $width
+			 * @param string $price_group
+			 * @param string $lining
+			 * @param string $style			 
+			 * @return string || int			 
 			 **/
 			public function calculate_curtains_price( $width, $price_group, $lining, $style ) {
 				global $wpdb;
-				//if ( !$width || !$price_group ) continue;
 
 				$lining = $this->normalize_curtain_lining_name( $lining );
 				$style = $this->normalize_curtain_style_name( $style );
@@ -651,6 +695,12 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
 
 			/**
 			 * Calculate price for shutters
+			 * @param int $width
+			 * @param int $height
+			 * @param string $price_group
+			 * @param string $panels
+			 * @param string $installation			 
+			 * @return string || int			 
 			 **/
 			public function calculate_shutters_price( $width, $height, $price_group, $panels, $installation ) {
 				global $wpdb;
@@ -677,12 +727,15 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
 
 			/**
 			 * Add markup to product price
+			 * @param float $price
+			 * @param string $group			 
+			 * @return float			 
 			 */	
 			private function add_price_markup( $price, $group ) {
 				global $wpdb;
 				
 				$results = $wpdb->get_results( "SELECT * FROM `wp_woocommerce_markup_manager_rules` WHERE variation = '$group' " );
-				//print_r($group);
+
 				$range1 = json_decode( $results[0]->markup_range_1 );
 				$range2 = json_decode( $results[0]->markup_range_2 );
 				$range3 = json_decode( $results[0]->markup_range_3 );
@@ -706,6 +759,9 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
 
 			/**
 			 * normalize_taxonomy_name
+			 * @param string $name
+			 * @param strgin $prefix
+			 * @return array			 
 			 */	
 			public function normalize_taxonomy_name( $name, $prefix = 'pa_' ) {
 				$prefix_length = strlen( $prefix );
@@ -720,6 +776,8 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
 
 			/**
 			 * fill_taxonomy_terms
+			 * @param array $terms
+			 * @param array $target
 			 */	
 			public function fill_taxonomy_terms( $terms = array(), &$target ) {
 				foreach ( $terms as $term ) {
@@ -734,6 +792,7 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
 
 			/**
 			 * get_product_addons
+			 * @return array
 			 */	
 			public function get_product_addons() {
 				global $woocommerce;
@@ -764,6 +823,7 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
 
 			/**
 			 * get_products_categories
+			 * @return array
 			 */	
 			public  function get_products_categories() {
 				global $woocommerce;
@@ -786,6 +846,8 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
 			
 			/**
 			 * normalize_curtain_lining_name
+			 * @param string $string
+			 * @return string
 			 */	
 			public function normalize_curtain_lining_name( $string ) {
 		        switch ( $string ) {
@@ -808,6 +870,8 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
 
 			/**
 			 * normalize_curtain_style_name
+			 * @param string $string
+			 * @return string			 
 			 */	
 			public function normalize_curtain_style_name( $string ) {
 		        switch ( $string ) {

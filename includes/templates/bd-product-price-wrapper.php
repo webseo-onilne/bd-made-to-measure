@@ -18,7 +18,7 @@ $stock    = ( $product->is_in_stock() ? 'InStock' : 'OutOfStock' );
 <div itemprop="offers" itemscope itemtype="http://schema.org/Offer">
 
 	<p itemprop="price" class="price">
-		<span class="amount final-price" id="wpti-product-price">
+		<span class="amount final-price" id="wpti-product-price" ng-cloak>
 			{{currencySymbol}} {{finalPrice}} 
 			<img src="/custom/price/ajax-loader.gif" ng-show="showLoader" ng-cloak />
 		</span>

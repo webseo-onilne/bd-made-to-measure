@@ -24,6 +24,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 				echo "<option value='95'>Shutters</option>";
 				foreach ($variations as $attname => $addon) {
 					$names[] = $attname;
+					if (strpos($attname, 'pa_curtains') !== false) continue;
 					echo "<option value='". $attname ."'>" . str_replace(array("pa_", "-"), " ", $attname) . "</option>";
 				}
 
@@ -98,6 +99,16 @@ if ( ! defined( 'ABSPATH' ) ) {
 				</tr>
 			</tbody>
 		</table>
+
+		<hr />
+
+		<div class="meta-details">
+		<h4 ng-cloak>Price Sheet Meta Details: {{dimRestraints.priceSheet}}</h4>
+			<p ng-cloak>Min-Width: <strong>{{dimRestraints.minWidth}}<small>mm</small></strong></p>
+			<p ng-cloak>Max-Width: <strong>{{dimRestraints.maxWidth}}<small>mm</small></strong></p>
+			<p ng-cloak>Min-Drop: <strong>{{dimRestraints.minDrop}}<small>mm</small></strong></p>
+			<p ng-cloak>Max-Drop: <strong>{{dimRestraints.maxDrop}}<small>mm</small></strong></p>
+		</div>
 
     </div>
 	

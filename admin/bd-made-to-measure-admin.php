@@ -34,8 +34,21 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
 					add_action( 'wp_ajax_get_price_book_ajax', array( &$this, 'get_price_book_ajax' ) );
 					// Upload result ajax
 					add_action( 'wp_ajax_bd_price_import_ajax', array( &$this, 'bd_price_import_ajax' ) );
+					// Meta data result ajax
+					add_action( 'wp_ajax_bd_ajax_get_meta_data', array( &$this, 'bd_ajax_get_meta_data' ) );
+					// Plugin Settings
+					add_action( 'admin_init', array( &$this, 'bd_main_plugin_settings' ) );					
 				}
 
+			}
+
+
+			public function bd_main_plugin_settings() {
+
+			    register_setting( 'dimension-settings', 'max_width_error_message' );
+			    register_setting( 'dimension-settings', 'min_width_error_message' );
+			    register_setting( 'dimension-settings', 'max_drop_error_message' );
+			    register_setting( 'dimension-settings', 'min_drop_error_message' );			    
 			}
 
 
@@ -57,17 +70,20 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
 		    	$bd_markup_page = add_submenu_page( 'blinds-made-to-measure', 'Markup Manager', 'Markup Manager', 'manage_options', 'bd-add-price-markup', array( &$this, 'bd_settings' ) );
 		    	// Price importer page
 		    	$bd_import_page = add_submenu_page( 'blinds-made-to-measure', 'Price Importer', 'Price Importer', 'manage_options', 'bd-price-import', array( &$this, 'bd_price_importer' ) );
+		    	// Curtains upload
+		    	$bd_curtains_import = add_submenu_page( 'blinds-made-to-measure', 'Curtain Manager', 'Curtain Manager', 'manage_options', 'bd-curtain-price-import', array( &$this, 'bd_curtain_price_import' ) );	    	
 		    	// Settings Page
 		    	$bd_settings_page = add_submenu_page( 'blinds-made-to-measure', 'Settings', 'Settings', 'manage_options', 'bd-plugin-settings', array( &$this, 'bd_plugin_settings' ) );
 		    	// Upload preview
 		    	$bd_import_preview = add_submenu_page( null, null, null, 'manage_options', 'bd-price-import-preview', array( &$this, 'bd_price_import_preview' ) );
 		    	// Upload result
-		    	$bd_import_result = add_submenu_page( null, null, null, 'manage_options', 'bd-price-import-result', array( &$this, 'bd_price_import_result' ) );
+		    	$bd_import_result = add_submenu_page( null, null, null, 'manage_options', 'bd-price-import-result', array( &$this, 'bd_price_import_result' ) );		    	
 			    // Load the JS conditionally
 			    add_action( 'load-' . $bd_main_page, array( &$this, 'load_admin_js' ) );				
 			    add_action( 'load-' . $bd_markup_page, array( &$this, 'load_admin_js' ) );
 			    add_action( 'load-' . $bd_settings_page, array( &$this, 'load_admin_js' ) );
 			    add_action( 'load-' . $bd_import_page, array( &$this, 'load_admin_js' ) );
+			    add_action( 'load-' . $bd_curtains_import, array( &$this, 'load_admin_js' ) );			    
 			}
 
 
@@ -148,10 +164,13 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
 			 * TODO - Plugin settings page
 			 */	
 			public function bd_plugin_settings() {
-				// ...
-
-				echo "Hello World!";
+				include plugin_dir_path( __FILE__ ) . "admin-settings.php";
 			}
+
+			
+			public function bd_curtain_price_import() {
+				include plugin_dir_path( __FILE__ ) .'bd-price-import-curtains.php';
+			}		
 
 
 			/**
@@ -310,12 +329,27 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
 							ON `wp_woocommerce_cat_price_table`.`term_id` = `wp_woocommerce_markup_manager_rules`.`variation` 
 							WHERE `term_id` = '$group' ", OBJECT );
 
-					    if (!$results) {
+					    if ( ! $results ) {
 					    	// Build and execute the query
 						    $results = $wpdb->get_results( "SELECT * FROM `wp_woocommerce_cat_price_table` 
 						        WHERE `term_id` = '$group' ", OBJECT );	      
 					    }
 					} 
+					// Curtains
+					elseif ( strpos( $group, 'pa_curtains' ) )  {
+
+						$results = $wpdb->get_results( "SELECT * FROM `wp_woocommerce_curtain_price_table` 
+							INNER JOIN `wp_woocommerce_markup_manager_rules` 
+							ON `wp_woocommerce_curtain_price_table`.`price_group` = `wp_woocommerce_markup_manager_rules`.`variation` 
+							WHERE `price_group` = '$group' ", OBJECT );
+
+					    if ( ! $results ) {
+					    	// Build and execute the query
+						    $results = $wpdb->get_results( "SELECT * FROM `wp_woocommerce_curtain_price_table` 
+						        WHERE `price_group` = '$group' ", OBJECT );	      
+					    }
+
+					}
 					// Blinds
 					else {
 
@@ -324,7 +358,7 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
 							ON `wp_woocommerce_addon_price_table`.`field_label` = `wp_woocommerce_markup_manager_rules`.`variation` 
 							WHERE `field_label` = '$group' ", OBJECT );
 
-					    if (!$results) {
+					    if ( ! $results ) {
 					    	// Build and execute the query
 						    $results = $wpdb->get_results( "SELECT * FROM `wp_woocommerce_addon_price_table` 
 						        WHERE `field_label` = '$group' ", OBJECT );	      
@@ -336,7 +370,39 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
 				}
 
 				wp_die();	
-			}						
+			}
+
+
+			public function bd_ajax_get_meta_data() {
+
+				if ( defined( 'DOING_AJAX' ) && DOING_AJAX ) {
+					global $wpdb;
+
+					$group  = $_GET['group'];
+
+					if ( $group == '95' ) {
+						$results = $wpdb->get_results( "SELECT MAX(width) as max_width, MIN(width) as min_width, MAX(height) as max_drop, MIN(height) as min_drop 
+							FROM `wp_woocommerce_cat_price_table`
+							WHERE `term_id` = '$group' " );
+					}
+					elseif ( strpos( $group, 'pa_curtains' ) ) {
+						$results = $wpdb->get_results( "SELECT MAX(width) as max_width, MIN(width) as min_width, MAX(height) as max_drop, MIN(height) as min_drop 
+							FROM `wp_woocommerce_curtain_price_table`
+							WHERE `price_group` = '$group' " );
+					}
+					else {
+						$results = $wpdb->get_results( "SELECT MAX(width) as max_width, MIN(width) as min_width, MAX(height) as max_drop, MIN(height) as min_drop 
+							FROM `wp_woocommerce_addon_price_table`
+							WHERE `field_label` = '$group' " );
+					}
+
+					$results['price_sheet'] = $group;
+
+					echo json_encode( $results ? $results : $wpdb->last_error );
+				}
+
+				wp_die();
+			}								
 
 
 		}

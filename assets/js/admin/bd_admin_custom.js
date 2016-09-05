@@ -18,7 +18,10 @@ jQuery(document).ready(function ($) {
         },
         addMarkupData: function(markupData, priceGroup, markupRange) {
           return $http.get(blinds.ajax_url+'?action=bd_ajax_save_markup_data&group='+priceGroup+'&mdata='+markupData+'&range='+markupRange);
-        }                 
+        },
+        getMetaData: function(priceGroup) {
+          return $http.get(blinds.ajax_url+'?action=bd_ajax_get_meta_data&group='+priceGroup);
+        }                  
       } 
     })
 
@@ -51,6 +54,7 @@ jQuery(document).ready(function ($) {
           $scope.allPrices = response.data;
           $scope.showAll = response.data.length;
           NProgress.done();
+
         });
 
         DataLoader.getMarkupData(curtainGroup).then(function(response) {
@@ -85,8 +89,22 @@ jQuery(document).ready(function ($) {
             'to': range3Data.to ? range3Data.to : 0,
             'from': range3Data.from ? range3Data.from : 0,
             'markup_by': range3Data.markup_by ? range3Data.markup_by : 0
-          };                    
+          };
+
         });
+
+        DataLoader.getMetaData(curtainGroup).then(function(response) {
+
+          $scope.dimRestraints = {
+            priceSheet: response.data.price_sheet,
+            minWidth: response.data[0].min_width,
+            maxWidth: response.data[0].max_width,
+            minDrop: response.data[0].min_drop,
+            maxDrop: response.data[0].max_drop
+          };
+
+        });
+
       }
 
       $scope.saveMarkup = function(markupData, priceGroup, markupRange) {
