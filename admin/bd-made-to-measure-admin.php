@@ -36,6 +36,8 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
 					add_action( 'wp_ajax_bd_price_import_ajax', array( &$this, 'bd_price_import_ajax' ) );
 					// Meta data result ajax
 					add_action( 'wp_ajax_bd_ajax_get_meta_data', array( &$this, 'bd_ajax_get_meta_data' ) );
+					// Meta data result ajax
+					add_action( 'wp_ajax_get_variations_ajax', array( &$this, 'get_variations_ajax' ) );
 					// Plugin Settings
 					add_action( 'admin_init', array( &$this, 'bd_main_plugin_settings' ) );					
 				}
@@ -100,6 +102,13 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
 			        array( 'jquery', 'jquery-ui-core', 'jquery-ui-tabs' )
 			    );
 
+			    // Enqueue selectize js
+			    wp_enqueue_script( 
+			        'selectize_js',
+			        plugins_url() . '/bd-made-to-measure/assets/js/admin/selectize.js',
+			        array( 'jquery', 'jquery-ui-core', 'jquery-ui-tabs' )
+			    );
+
 			    // Enqueue Toastr js
 			    wp_enqueue_script( 
 			        'toastr',
@@ -114,13 +123,19 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
 			        array( 'jquery' )
 			    );
 
-
 			    // Enqueue angular js
 			    wp_enqueue_script( 
 			        'angular',
 			        'https://ajax.googleapis.com/ajax/libs/angularjs/1.5.7/angular.min.js',
 			        array( 'jquery' )
 			    );
+
+			    // Enqueue angular-selectize js
+			    wp_enqueue_script( 
+			        'angular_selectize_js',
+			        plugins_url() . '/bd-made-to-measure/assets/js/admin/angular-selectize.js',
+			        array( 'jquery', 'jquery-ui-core', 'jquery-ui-tabs' )
+			    );			    
 
 			    // Create globals here for the custom.js file
 				wp_localize_script( 'bd_admin_custom', 'blinds', array(
@@ -146,6 +161,16 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
 			     );
 			     // Enqueue nprogress CSS
 			     wp_enqueue_style( 'nprogress_css' );
+
+			     // Register selectize CSS
+			     wp_register_style( 
+			         'selectize_css',
+			         plugins_url() . '/bd-made-to-measure/assets/css/admin/selectize.css',
+			         false,
+			         '1.0.0'
+			     );
+			     // Enqueue selectize CSS
+			     wp_enqueue_style( 'selectize_css' );
 
 			}
 
@@ -263,6 +288,35 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
 				    }
 				    
 				    echo json_encode( $results );		
+
+				}
+
+				wp_die();	
+			}
+
+
+			/**
+			 * get_variations_ajax
+			 */	
+			public function get_variations_ajax() {
+
+				if ( defined( 'DOING_AJAX' ) && DOING_AJAX ) {
+				    
+				    $variations =  $this->get_product_addons();
+				    $all_addons = array();
+				    $i = 0;	
+					foreach ( $variations as $attname => $addon ) {
+
+						if ( strpos( $attname, 'pa_curtains' ) !== false)  continue;
+						$all_addons[ $i ]['value'] = $attname;
+						$all_addons[ $i ]['text'] = $addon['normalized_name'];
+						if ( ! empty( $_GET['get_swatches'] ) ) {
+							$all_addons[$i]['swatches'] = $addon['terms'];
+						}
+						$i++;
+					}
+
+					echo json_encode($all_addons);	
 
 				}
 

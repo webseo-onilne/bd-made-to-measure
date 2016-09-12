@@ -174,7 +174,7 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
 					$tax = new WC_Tax();
 					$rates = $tax->find_rates( array( 'country' => 'ZA' ) );					
 
-					echo json_encode( is_float( $result ) ? array( 'response' => 'OK', 'price' => $result, 'currency' => $currency, 'tax' => $rates ) : array( 'response' => 'ERROR', 'message' => $result ) );
+					echo json_encode( $result ? array( 'response' => 'OK', 'price' => $result, 'currency' => $currency, 'tax' => $rates ) : array( 'response' => 'ERROR', 'message' => $result ) );
 
 				}
 
@@ -649,17 +649,18 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
 			 **/
 			public function calculate_blinds_price( $width, $drop, $price_group, $options ) {
 				global $wpdb;
-
+				$width = (int) $width;
+				$height = (int) $drop;
 				$price = $wpdb->get_var( $wpdb->prepare(
 					"SELECT price FROM `wp_woocommerce_addon_price_table`
-					WHERE field_label = %s AND choice = %s
-					ORDER BY ABS(width - %d) ASC, ABS(height - %d) ASC",
+					WHERE field_label = %s AND choice = %s AND width >= %d AND height >= %d
+					ORDER BY width ASC, height ASC",
 					$price_group, $price_group, $width, $drop )
 				);
 
 				$price = $this->add_price_markup( $price, $price_group );
 
-				return $price ? ( float )$price : $price = $wpdb->last_error;				
+				return $price ? $price : $price = $wpdb->last_error;				
 			}
 
 
@@ -684,7 +685,7 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
 			        AND `lining_type` = '$lining'
 			        AND `style_type` = '$style'
 			        AND `width` >= $width 
-			        ORDER BY ABS(`width` - $width) ASC
+			        ORDER BY ABS(width - $width) ASC
 			        LIMIT 1" );
 
 				$price = $this->add_price_markup( $price, $price_group );
@@ -735,19 +736,19 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
 				global $wpdb;
 				
 				$results = $wpdb->get_results( "SELECT * FROM `wp_woocommerce_markup_manager_rules` WHERE variation = '$group' " );
-
+				$price = (float)$price;
 				$range1 = json_decode( $results[0]->markup_range_1 );
 				$range2 = json_decode( $results[0]->markup_range_2 );
 				$range3 = json_decode( $results[0]->markup_range_3 );
 
 				if ( $price >= $range1->from && $price <= $range1->to ) {
-					$price = ( $price * $range1->markup_by / 100 + $price );
+					$price = ( ($price * $range1->markup_by / 100) + $price );
 
 				} elseif ( $price >= $range2->from && $price <= $range2->to ) {
-					$price = ( $price * $range2->markup_by / 100 + $price );
+					$price = ( ($price * $range2->markup_by / 100) + $price );
 
 				} elseif ( $price >= $range3->from && $price <= $range3->to ) {
-					$price = ( $price * $range3->markup_by / 100 + $price );
+					$price = ( ($price * $range3->markup_by / 100) + $price );
 
 				} else {
 					$price = $price;

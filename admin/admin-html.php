@@ -8,11 +8,24 @@ if ( ! defined( 'ABSPATH' ) ) {
     die( 'No script kiddies please!' );
 };
 
+				 //    $variations =  $this->get_product_addons();
+				 //    $all_addons = array();	
+				 //    $i = 0;	
+					// foreach ($variations as $attname => $addon) {
+					// 	// $names[] = $attname;
+					// 	// if (strpos($attname, 'pa_curtains') !== false) continue;
+					// 	$all_addons[$i]['value'] = $attname;
+					// 	$all_addons[$i]['text'] = $addon['normalized_name'];
+					// 	$i++;
+					// }
+
+					// print_r($all_addons);
+
 ?>
 
 <h3 class="page-title">Markup Manager</h3>
 <div class="wrap woocommerce" ng-app="curtainManager" ng-controller="curtainCtrl">
-		<hr>
+<!-- 		<hr>
 		<?php 
 
 			$variations = $this->get_product_addons();
@@ -29,10 +42,15 @@ if ( ! defined( 'ABSPATH' ) ) {
 				}
 
 			echo "</select>";
-		?>			
+		?>	 -->		
 	<hr />
+
+	<h4 class='header'>Select a Price Sheet</h4>
+    <selectize style="width:500px" placeholder='Search for, or Select a Price Sheet' options='variations' config="myConfig" ng-model="curtaingroup" ng-disabled='disable'></selectize>
+
+    <hr />
 	<div class="table-wrapper">
-		<h4 class="sub-title">Prices</h4> 
+		<h4 class="sub-title">Prices for: {{friendlyName}}</h4> 
 		<label style="float: right;margin-top: -34px;margin-right: 92px;" for="show-pagelimit">Show</label>
 		<select id="show-pagelimit" style="float: right;margin-top: -38px;" ng-model="pageLimit">
 			<option value="10">10</option>
@@ -47,9 +65,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 			<thead>
 				<tr>
 					<td>Width (mm)</td>
-					<td>Drop</td>
+					<td>Drop (mm)</td>
 					<td>Price</td>
-					<td>Marked Up Price (Incl)</td>
+					<td>Marked Up Price (Inc VAT)</td>
 				</tr>
 			</thead>
 			<tbody>
@@ -65,7 +83,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
     <div style="width: 48%; float:left;">
 
-		<h4 class="sub-title">Add Mark Up <span ng-cloak><strong>{{selectedGroup}}</strong></span></h4>
+		<h4 class="sub-title">Add Mark Up <span ng-cloak><strong>{{friendlyName}}</strong></span></h4>
 		<hr>
 		<table id="input-table" class="wp-list-table widefat fixed striped posts">
 			<thead>
@@ -103,11 +121,18 @@ if ( ! defined( 'ABSPATH' ) ) {
 		<hr />
 
 		<div class="meta-details">
-		<h4 ng-cloak>Price Sheet Meta Details: {{dimRestraints.priceSheet}}</h4>
+		<h4 ng-cloak>Price Sheet Meta Details: {{friendlyName}}</h4>
 			<p ng-cloak>Min-Width: <strong>{{dimRestraints.minWidth}}<small>mm</small></strong></p>
 			<p ng-cloak>Max-Width: <strong>{{dimRestraints.maxWidth}}<small>mm</small></strong></p>
 			<p ng-cloak>Min-Drop: <strong>{{dimRestraints.minDrop}}<small>mm</small></strong></p>
 			<p ng-cloak>Max-Drop: <strong>{{dimRestraints.maxDrop}}<small>mm</small></strong></p>
+		</div>
+
+		<hr />
+
+		<div class="meta-details">
+		<h4 ng-cloak>Swatches in this Group: {{friendlyName}}</h4>
+			<p ng-repeat="swatch in swatches" class="tag" ng-cloak>{{swatch.name}}</p>
 		</div>
 
     </div>

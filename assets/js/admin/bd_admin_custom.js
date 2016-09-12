@@ -4,7 +4,7 @@ jQuery(document).ready(function ($) {
 	NProgress.start();
 	NProgress.done();
 
-  var app = angular.module('curtainManager', []);
+  var app = angular.module('curtainManager', ['selectize']);
 
   app
 
@@ -21,18 +21,44 @@ jQuery(document).ready(function ($) {
         },
         getMetaData: function(priceGroup) {
           return $http.get(blinds.ajax_url+'?action=bd_ajax_get_meta_data&group='+priceGroup);
-        }                  
+        },
+        getVariationData: function(getSwatches) {
+          if (getSwatches) {
+            return $http.get(blinds.ajax_url+'?action=get_variations_ajax&get_swatches='+getSwatches);
+          }
+          else {
+            return $http.get(blinds.ajax_url+'?action=get_variations_ajax');
+          }
+        }                   
       } 
     })
 
     .controller('curtainCtrl', function($scope, $http, DataLoader) {
 
-      $scope.curtaingroup = 'undefined';
+      $scope.curtaingroup;
       $scope.filterby = '';
       $scope.liningFilter = '';
-      $scope.pageLimit = '10';
+      $scope.pageLimit = '20';
+      $scope.variations = [];
+
+      $scope.myConfig = {
+        onChange: function(value){
+          if (!value) return;
+          $scope.getCurtainPrices(value);
+        },
+        maxItems: 1,
+        required: true,
+        closeAfterSelect: true,
+        selectOnTab: true,
+        openOnFocus: false
+      };
+
+      DataLoader.getVariationData(false).then(function(response) {
+        $scope.variations = response.data;
+      });
 
       $scope.getCurtainPrices = function(curtainGroup) { 
+        if (!curtainGroup) return;
         NProgress.start();
 
         DataLoader.getPriceData(curtainGroup).then(function(response) {
@@ -52,7 +78,7 @@ jQuery(document).ready(function ($) {
           $scope.selectedGroupActaual = curtainGroup;
           $scope.selectedGroup = curtainGroup;
           $scope.allPrices = response.data;
-          $scope.showAll = response.data.length;
+          $scope.showAll = response.data.length+1;
           NProgress.done();
 
         });
@@ -105,6 +131,23 @@ jQuery(document).ready(function ($) {
 
         });
 
+        DataLoader.getVariationData(true).then(function(response) {
+          $scope.allVariations = response.data;
+          
+          var a = [];
+          angular.forEach(response.data, function(v, i) {
+
+            if (v.value == curtainGroup) {
+              a.push(v);
+;
+            }
+          });
+
+          $scope.swatches = a[0].swatches;
+          $scope.friendlyName = a[0].text;
+
+        });
+
       }
 
       $scope.saveMarkup = function(markupData, priceGroup, markupRange) {
@@ -154,7 +197,7 @@ jQuery(document).ready(function ($) {
           var price = price;
         };
 
-        return price;
+        return price *1.14;
       }      
 
     });
