@@ -50,7 +50,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
     <hr />
 	<div class="table-wrapper">
-		<h4 class="sub-title">Prices for: {{friendlyName}}</h4> 
+		<h4 class="sub-title">Prices for: <span class="sheet-name" ng-cloak>{{friendlyName}}</span></h4> 
 		<label style="float: right;margin-top: -34px;margin-right: 92px;" for="show-pagelimit">Show</label>
 		<select id="show-pagelimit" style="float: right;margin-top: -38px;" ng-model="pageLimit">
 			<option value="10">10</option>
@@ -83,7 +83,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
     <div style="width: 48%; float:left;">
 
-		<h4 class="sub-title">Add Mark Up <span ng-cloak><strong>{{friendlyName}}</strong></span></h4>
+		<h4 class="sub-title">Add Mark Up <span class="sheet-name" ng-cloak>{{friendlyName}}</span></h4>
 		<hr>
 		<table id="input-table" class="wp-list-table widefat fixed striped posts">
 			<thead>
@@ -121,7 +121,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 		<hr />
 
 		<div class="meta-details">
-		<h4 ng-cloak>Price Sheet Meta Details: {{friendlyName}}</h4>
+		<h4 ng-cloak>Price Sheet Meta Details: <span class="sheet-name" ng-cloak>{{friendlyName}}</span></h4>
 			<p ng-cloak>Min-Width: <strong>{{dimRestraints.minWidth}}<small>mm</small></strong></p>
 			<p ng-cloak>Max-Width: <strong>{{dimRestraints.maxWidth}}<small>mm</small></strong></p>
 			<p ng-cloak>Min-Drop: <strong>{{dimRestraints.minDrop}}<small>mm</small></strong></p>
@@ -131,7 +131,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 		<hr />
 
 		<div class="meta-details">
-		<h4 ng-cloak>Swatches in this Group: {{friendlyName}}</h4>
+		<h4 ng-cloak>Swatches in this Group: <span class="sheet-name" ng-cloak>{{friendlyName}}</span></h4>
 			<p ng-repeat="swatch in swatches" class="tag" ng-cloak>{{swatch.name}}</p>
 		</div>
 

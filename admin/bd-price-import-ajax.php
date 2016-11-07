@@ -90,7 +90,7 @@ if (isset($post_data['uploaded_file_path'])) {
 				$wpdb->prepare(
 					"DELETE FROM `wp_woocommerce_addon_price_table` WHERE field_label = %s AND choice = %s",
 					$type,
-					$field_choice));
+					$type));
 
 			if ($deleted === FALSE)
 				$error_messages[] = $wpdb->last_error;

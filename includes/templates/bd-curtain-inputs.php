@@ -25,35 +25,29 @@ foreach ( $addons as $addon ) {
 
 	<label style="width:60px;" for="wpti-product-x">Width <small>(mm)</small></label>
 
-	<input ng-disabled="!selected_attribute" 
-			title="Please choose a finish" 
-			data-dims="<?php echo htmlspecialchars(json_encode($max_dimensions)) ?>" 
+	<input data-dims="<?php echo htmlspecialchars(json_encode($max_dimensions)) ?>" 
 			input-width-restraints 
 			ng-model="input_width" 
 			ng-change="bd_get_price(input_width, input_drop, selected_attribute, productQuantity)" 
 			type="number" 
 			name="wpti_x" 
-			placeholder="Please choose a finish" 
+			placeholder="Enter a width" 
 			class="wpti-product-size" 
 			id="wpti-product-x">
 
 	<label style="width:60px;" for="wpti-product-y">Drop <small>(mm)</small></label>
 
-	<input ng-disabled="!selected_attribute" 
-			title="Please choose a finish" 
-			data-dims="<?php echo htmlspecialchars(json_encode($max_dimensions)) ?>" 
+	<input data-dims="<?php echo htmlspecialchars(json_encode($max_dimensions)) ?>" 
 			input-drop-restraints 
 			ng-model="input_drop" 
 			ng-change="bd_get_price(input_width, input_drop, selected_attribute, productQuantity)" 
 			type="number" 
 			name="wpti_y" 
-			placeholder="Please choose a finish" 
+			placeholder="Enter a drop" 
 			class="wpti-product-size" 
 			id="wpti-product-y">
 
-	<div ng-disabled="!selected_attribute" 
-			title="Please choose a finish" 
-			class="button calculate-price" 
+	<div class="button calculate-price" 
 			custom-validation 
 			ng-click="bd_get_price(input_width, input_drop, selected_attribute, productQuantity)">
 				Calculate

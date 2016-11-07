@@ -132,6 +132,7 @@ jQuery(document).ready(function ($) {
         });
 
         DataLoader.getVariationData(true).then(function(response) {
+
           $scope.allVariations = response.data;
           
           var a = [];
@@ -139,7 +140,6 @@ jQuery(document).ready(function ($) {
 
             if (v.value == curtainGroup) {
               a.push(v);
-;
             }
           });
 
