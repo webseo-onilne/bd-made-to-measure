@@ -30,6 +30,8 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
 					add_action( 'wp_ajax_get_markup_ajax', array( &$this, 'get_markup_ajax' ) );
 					// Save markup
 					add_action( 'wp_ajax_bd_ajax_save_markup_data', array( &$this, 'bd_ajax_save_markup_data' ) );
+					// Save dims
+					add_action( 'wp_ajax_bd_ajax_save_dimension_data', array( &$this, 'bd_ajax_save_dimension_data' ) );					
 					// Get price books
 					add_action( 'wp_ajax_get_price_book_ajax', array( &$this, 'get_price_book_ajax' ) );
 					// Upload result ajax
@@ -75,7 +77,7 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
 		    	// Curtains upload
 		    	$bd_curtains_import = add_submenu_page( 'blinds-made-to-measure', 'Curtain Manager', 'Curtain Manager', 'manage_options', 'bd-curtain-price-import', array( &$this, 'bd_curtain_price_import' ) );	    	
 		    	// Settings Page
-		    	$bd_settings_page = add_submenu_page( 'blinds-made-to-measure', 'Settings', 'Settings', 'manage_options', 'bd-plugin-settings', array( &$this, 'bd_plugin_settings' ) );
+		    	$bd_settings_page = add_submenu_page( 'blinds-made-to-measure', 'Settings', 'Settings', 'manage_options', 'bd-plugin-settings', array( &$this, 'bd_plugin_settings' ) );	    	
 		    	// Upload preview
 		    	$bd_import_preview = add_submenu_page( null, null, null, 'manage_options', 'bd-price-import-preview', array( &$this, 'bd_price_import_preview' ) );
 		    	// Upload result
@@ -85,7 +87,7 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
 			    add_action( 'load-' . $bd_markup_page, array( &$this, 'load_admin_js' ) );
 			    add_action( 'load-' . $bd_settings_page, array( &$this, 'load_admin_js' ) );
 			    add_action( 'load-' . $bd_import_page, array( &$this, 'load_admin_js' ) );
-			    add_action( 'load-' . $bd_curtains_import, array( &$this, 'load_admin_js' ) );			    
+			    add_action( 'load-' . $bd_curtains_import, array( &$this, 'load_admin_js' ) );    
 			}
 
 
@@ -192,6 +194,13 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
 				include plugin_dir_path( __FILE__ ) . "admin-settings.php";
 			}
 
+			/**
+			 * TODO - Plugin settings page
+			 */	
+			public function bd_dimension_restraints() {
+				include plugin_dir_path( __FILE__ ) . "bd-dim-restraints.php";
+			}			
+
 			
 			public function bd_curtain_price_import() {
 				include plugin_dir_path( __FILE__ ) .'bd-price-import-curtains.php';
@@ -279,9 +288,21 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
 
 					$group = $_GET['group'];
 
-				    // Build and execute the query
-				    $results = $wpdb->get_results( "SELECT * FROM `wp_woocommerce_markup_manager_rules` 
-				        WHERE `variation` = '$group' ", OBJECT );
+					if ( $group == 'pa_shutters' ) {
+					    // Build and execute the query
+					    $results = $wpdb->get_results( "SELECT * FROM `wp_woocommerce_markup_manager_rules` 
+					        WHERE `variation` = '95' ", OBJECT );
+					}
+					elseif ( $group == 'pa_security-shutters' ) {
+					    // Build and execute the query
+					    $results = $wpdb->get_results( "SELECT * FROM `wp_woocommerce_markup_manager_rules` 
+					        WHERE `variation` = '1282' ", OBJECT );
+					}
+					else {
+					    // Build and execute the query
+					    $results = $wpdb->get_results( "SELECT * FROM `wp_woocommerce_markup_manager_rules` 
+					        WHERE `variation` = '$group' ", OBJECT );
+					}
 
 				    if (!$results) {
 				      $results = $wpdb->last_error;
@@ -336,19 +357,33 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
 					$markup_data = $_GET['mdata'];
 					$markup_group = $_GET['range'];
 
-					// Build and execute the query
-					$add_markup = $wpdb->query("INSERT INTO `wp_woocommerce_markup_manager_rules` (variation, {$markup_group}) 
-						VALUES ('$variation_name', '$markup_data') ON DUPLICATE KEY UPDATE {$markup_group} = '$markup_data' " );
+					if ( $variation_name == 'pa_shutters' ) {
 
-					if ( $variation_name == '95' ) {
+						// Build and execute the query
+						$add_markup = $wpdb->query("INSERT INTO `wp_woocommerce_markup_manager_rules` (variation, {$markup_group}) 
+							VALUES ('95', '$markup_data') ON DUPLICATE KEY UPDATE {$markup_group} = '$markup_data' " );
 
 						$results = $wpdb->get_results( "SELECT * FROM `wp_woocommerce_cat_price_table` 
 							INNER JOIN `wp_woocommerce_markup_manager_rules` 
 							ON `wp_woocommerce_cat_price_table`.`term_id` = `wp_woocommerce_markup_manager_rules`.`variation` 
-							WHERE `term_id` = '$variation_name' ", OBJECT );
+							WHERE `term_id` = '95' ", OBJECT );
 
 					}
+					elseif ( $variation_name == 'pa_security-shutters' ) {
+						// Build and execute the query
+						$add_markup = $wpdb->query("INSERT INTO `wp_woocommerce_markup_manager_rules` (variation, {$markup_group}) 
+							VALUES ('1282', '$markup_data') ON DUPLICATE KEY UPDATE {$markup_group} = '$markup_data' " );
+
+						$results = $wpdb->get_results( "SELECT * FROM `wp_woocommerce_cat_price_table` 
+							INNER JOIN `wp_woocommerce_markup_manager_rules` 
+							ON `wp_woocommerce_cat_price_table`.`term_id` = `wp_woocommerce_markup_manager_rules`.`variation` 
+							WHERE `term_id` = '1282' ", OBJECT );
+					}
 					else {
+
+						// Build and execute the query
+						$add_markup = $wpdb->query("INSERT INTO `wp_woocommerce_markup_manager_rules` (variation, {$markup_group}) 
+							VALUES ('$variation_name', '$markup_data') ON DUPLICATE KEY UPDATE {$markup_group} = '$markup_data' " );
 
 						$results = $wpdb->get_results( "SELECT * FROM `wp_woocommerce_addon_price_table` 
 							INNER JOIN `wp_woocommerce_markup_manager_rules` 
@@ -364,6 +399,32 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
 				wp_die();
 			}
 
+			public function bd_ajax_save_dimension_data() {
+				if ( defined( 'DOING_AJAX' ) && DOING_AJAX ) {
+					global $wpdb;
+
+					$variation_name = $_GET['group']; //Group name
+					$max_width = $_GET['max_w'];
+					$min_width = $_GET['min_w'];
+					$max_drop = $_GET['max_d'];
+					$min_drop = $_GET['min_d'];
+
+					// Build and execute the query
+					$update_dims = $wpdb->query("UPDATE `wp_woocommerce_dimension_restraints` 
+						SET `max_width` = $max_width, `min_width` = $min_width, `max_drop` = $max_drop, `min_drop` = $min_drop 
+						WHERE `price_group` = '$variation_name' ");
+
+					$results = $wpdb->get_results( "SELECT * FROM `wp_woocommerce_dimension_restraints`
+						WHERE `price_group` = '$variation_name' ", OBJECT );
+					
+					// Send the reponse back
+					echo empty( $update_dims ) ? json_encode( $wpdb->last_error ) : json_encode( $results );
+
+				}
+
+				wp_die();				
+			}			
+
 
 			/**
 			 * Gets the variations prices
@@ -376,19 +437,31 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
 					$group  = $_GET['group'];
 
 					// Shutters
-					if ( $group == '95' ) {
+					if ( $group == 'pa_shutters' ) {
 
 						$results = $wpdb->get_results( "SELECT * FROM `wp_woocommerce_cat_price_table` 
 							INNER JOIN `wp_woocommerce_markup_manager_rules` 
 							ON `wp_woocommerce_cat_price_table`.`term_id` = `wp_woocommerce_markup_manager_rules`.`variation` 
-							WHERE `term_id` = '$group' ", OBJECT );
+							WHERE `term_id` = '95' ", OBJECT );
 
 					    if ( ! $results ) {
 					    	// Build and execute the query
 						    $results = $wpdb->get_results( "SELECT * FROM `wp_woocommerce_cat_price_table` 
-						        WHERE `term_id` = '$group' ", OBJECT );	      
+						        WHERE `term_id` = 1282 ", OBJECT );	      
 					    }
 					} 
+					elseif ( $group == 'pa_security-shutters' ) {
+						$results = $wpdb->get_results( "SELECT * FROM `wp_woocommerce_cat_price_table` 
+							INNER JOIN `wp_woocommerce_markup_manager_rules` 
+							ON `wp_woocommerce_cat_price_table`.`term_id` = `wp_woocommerce_markup_manager_rules`.`variation` 
+							WHERE `term_id` = '1282' ", OBJECT );
+
+					    if ( ! $results ) {
+					    	// Build and execute the query
+						    $results = $wpdb->get_results( "SELECT * FROM `wp_woocommerce_cat_price_table` 
+						        WHERE `term_id` = 1282 ", OBJECT );	      
+					    }
+					}
 					// Curtains
 					elseif ( strpos( $group, 'pa_curtains' ) )  {
 
@@ -445,9 +518,9 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
 							WHERE `price_group` = '$group' " );
 					}
 					else {
-						$results = $wpdb->get_results( "SELECT MAX(width) as max_width, MIN(width) as min_width, MAX(height) as max_drop, MIN(height) as min_drop 
-							FROM `wp_woocommerce_addon_price_table`
-							WHERE `field_label` = '$group' " );
+						$results = $wpdb->get_results( "SELECT  max_width, min_width, max_drop, min_drop 
+							FROM `wp_woocommerce_dimension_restraints`
+							WHERE `price_group` = '$group' " );
 					}
 
 					$results['price_sheet'] = $group;

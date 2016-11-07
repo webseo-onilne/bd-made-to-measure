@@ -27,7 +27,7 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
 		class BD_made_to_measure {
 			public function __construct() {
 
-				require 'woocommerce-template.php';
+				//require 'woocommerce-template.php';
 				// called only after woocommerce has finished loading
 				add_action( 'woocommerce_init', array( &$this, 'woocommerce_loaded' ) );
 				// called after all plugins have loaded
@@ -132,6 +132,16 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
 					'max_drop_error' => get_option('max_drop_error_message'),
 					'min_drop_error' => get_option('min_drop_error_message')					
 				));
+				
+				// Create local variables here for the blinds.js file
+				wp_localize_script( 'blinds_js', 'blinds', array(
+					'ajax_url' => admin_url( 'admin-ajax.php' ),
+					'product_id' => $post->ID,
+					'max_width_error' => get_option('max_width_error_message'),
+					'min_width_error' => get_option('min_width_error_message'),
+					'max_drop_error' => get_option('max_drop_error_message'),
+					'min_drop_error' => get_option('min_drop_error_message')					
+				));				
 			}
 
 
@@ -584,8 +594,17 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
 			        		$style_type = 'null';
 			        		break;
 			        }
+
+					// Check if professional installation is required.
+					if ($cart_item['addons'][14]['value'] == 'Yes' || $cart_item['addons'][14]['value'] == 'No') {
+						$installation_required = $cart_item['addons'][14]['value'];
+					} 
+					else {
+						$installation_required = $cart_item['addons'][15]['value'];
+					}			        
 				
-				}			
+				}
+				
 				if ( $this->product_has_price_table( $cart_item['product_id'] ) ) {
 					// Remove empty variation names from variation array
 					if ( array_key_exists( 'variation', $cart_item ) && is_array( $cart_item['variation'] ) && count( $cart_item['variation'] ) ) {
@@ -615,7 +634,7 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
 					}
 					elseif ( $this->check_bd_product_type_with_id( $cart_item['product_id'] ) == 'Shutters' ) {
 						// Shutters
-					 	$price = $this->calculate_shutters_price( $wpti['x'], $wpti['y'], 95, $cart_item['addons'][8]['value'], $cart_item['addons'][14]['value'] );
+					 	$price = $this->calculate_shutters_price( $wpti['x'], $wpti['y'], 95, $cart_item['addons'][8]['value'], $installation_required );
 					} 
 					else {
 						// Blinds
@@ -658,7 +677,7 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
 					$price_group, $price_group, $width, $drop )
 				);
 
-				$price = $this->add_price_markup( $price, $price_group );
+				$price = self::add_price_markup( $price, $price_group );
 
 				return $price ? $price : $price = $wpdb->last_error;				
 			}
@@ -808,7 +827,7 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
 						: array() );
 
 				foreach ( $attr_tax as $taxonomy ) {
-					$name = $this->normalize_taxonomy_name( $taxonomy );
+					$name = self::normalize_taxonomy_name( $taxonomy );
 					$addons[ $taxonomy ] = array(
 						'normalized_name' => $name,
 						'slug' => $taxonomy,
@@ -817,7 +836,7 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
 				}
 
 				$terms = get_terms( $attr_tax );
-				$this->fill_taxonomy_terms( $terms, $addons );
+				self::fill_taxonomy_terms( $terms, $addons );
 				return $addons;
 			}
 
