@@ -8,11 +8,41 @@ if ( ! defined( 'ABSPATH' ) ) {
     die( 'No script kiddies please!' );
 };
 
+				 //    $variations =  $this->get_product_addons();
+				 //    $all_addons = array();	
+				 //    $i = 0;	
+					// foreach ($variations as $attname => $addon) {
+					// 	// $names[] = $attname;
+					// 	// if (strpos($attname, 'pa_curtains') !== false) continue;
+					// 	$all_addons[$i]['value'] = $attname;
+					// 	$all_addons[$i]['text'] = $addon['normalized_name'];
+					// 	$i++;
+					// }
+
+					// print_r($all_addons);
+
 ?>
 
 <h3 class="page-title">Markup Manager</h3>
 <div class="wrap woocommerce" ng-app="curtainManager" ng-controller="curtainCtrl">
-		
+<!-- 		<hr>
+		<?php 
+
+			$variations = $this->get_product_addons();
+			$names = array();
+
+			echo "Select a Price Sheet: ";
+			echo "<select class='variation-options_check' ng-model='curtaingroup' ng-change='getCurtainPrices(curtaingroup)'>";
+				echo "<option value='undefined'>Please Select</option>"; 
+				echo "<option value='95'>Shutters</option>";
+				foreach ($variations as $attname => $addon) {
+					$names[] = $attname;
+					if (strpos($attname, 'pa_curtains') !== false) continue;
+					echo "<option value='". $attname ."'>" . str_replace(array("pa_", "-"), " ", $attname) . "</option>";
+				}
+
+			echo "</select>";
+		?>	 -->		
 	<hr />
 
 	<h4 class='header'>Select a Price Sheet</h4>
@@ -90,35 +120,13 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 		<hr />
 
-		<h4 class="sub-title">Price Sheet Dimensions <span class="sheet-name" ng-cloak>{{friendlyName}}</span></h4>
-		<table id="input-table" class="wp-list-table widefat fixed striped posts">
-			<thead>
-				<tr>
-					<td>Maximum Width</td>
-					<td>Minimum Width</td>
-					<td>Maximum Drop</td>
-					<td>Minimum Drop</td>
-					<td>Save</td>
-				</tr>
-			</thead>
-			<tbody>
-				<tr class="price_dims">
-					<td><input id="" ng-model="dimRestraints.maxWidth" class="dims-input range_1_from" type="text" /></td>
-					<td><input id="" ng-model="dimRestraints.minWidth" class="dims-input range_1_to" type="text" /></td>
-					<td><input id="" ng-model="dimRestraints.maxDrop" class="dims-input range_1_markup_by" type="text" /></td>
-					<td><input id="" ng-model="dimRestraints.minDrop" class="dims-input range_1_markup_by" type="text" /></td>
-					<td><button class="markup-button button button-primary button-small" ng-disabled="!dimRestraints" ng-click="saveDims(dimRestraints)">Save</button></td>
-				</tr>
-			</tbody>
-		</table>		
-
-<!-- 		<div class="meta-details">
+		<div class="meta-details">
 		<h4 ng-cloak>Price Sheet Meta Details: <span class="sheet-name" ng-cloak>{{friendlyName}}</span></h4>
 			<p ng-cloak>Min-Width: <strong>{{dimRestraints.minWidth}}<small>mm</small></strong></p>
 			<p ng-cloak>Max-Width: <strong>{{dimRestraints.maxWidth}}<small>mm</small></strong></p>
 			<p ng-cloak>Min-Drop: <strong>{{dimRestraints.minDrop}}<small>mm</small></strong></p>
 			<p ng-cloak>Max-Drop: <strong>{{dimRestraints.maxDrop}}<small>mm</small></strong></p>
-		</div> -->
+		</div>
 
 		<hr />
 

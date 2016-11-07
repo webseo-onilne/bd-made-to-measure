@@ -34,9 +34,6 @@ jQuery(document).ready(function ($) {
             setTimeout(function() {
                 // Trigger changes on the inputs to make sure the dimesions
                 // are correctly validated
-                //angular.element(document.getElementById('wpti-product-x')).triggerHandler('change');
-                // $('#wpti-product-x').trigger('change');
-                // $('#wpti-product-y').trigger('change');
                 $('.calculate-price').trigger('click');
             }, 500);
         });
@@ -90,7 +87,6 @@ jQuery(document).ready(function ($) {
         });
     });
 
-
     $('.single_variation_wrap').after('<div class="new_price"></div>');
     $('.quantity input.qty').on('change', function() {
         var qty = $(this).val();
@@ -101,9 +97,10 @@ jQuery(document).ready(function ($) {
             return;
         }
         else if (isNaN(new_price)) {
+            $('.new_price').empty();
             return;
         };        
-        $('.new_price').html('<p>R '+new_price.toFixed(2)+'</p>').css('color', 'red');
+        $('.new_price').html('<p>R '+new_price.toFixed(2)+'</p>').css({'color':'red', 'font-size':'20px', 'font-weight':'bold'});
 
     });
 

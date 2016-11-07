@@ -10,8 +10,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 ?>
 
-<?php 
-global $wpdb;
+<?php
+global $wpdb; 
 if (isset($_GET['preview'])) {
 
 	$postData = array(
@@ -166,11 +166,11 @@ if (isset($_GET['preview'])) {
 					<td>Lining</td>
 					<td>Style</td>
 					<td>Price</td>
-					<td>Marked Up Price <sub>(Excl VAT)</sub></td>
+					<td>Marked Up Price <sub>(Inc VAT)</sub></td>
 				</tr>
 			</thead>
 			<tbody>
-				<tr ng-repeat="item in allPrices | filter: filterBy | filter: styleFilter">
+				<tr ng-repeat="item in allPrices | filter: filterBy | filter: styleFilter | orderBy: 'width'">
 					<td data-id="{{item.id}}" ng-cloak>{{item.width}}</td>
 					<td ng-cloak>{{item.lining_type == 'lining_type_standard' ? 'Standard Lining' : item.lining_type == 'lining_type_blockout' ? 'Blockout Lining' : item.lining_type == 'lining_type_none' ? 'No Lining' : 'N/A' }}</td>
 					<td ng-cloak>{{item.style_type == 'style_type_ep' ? 'Eyelet/Pencil' : item.style_type == 'style_type_wpf' ? 'Wave/Pinch/French' : 'N/A'}}</td>

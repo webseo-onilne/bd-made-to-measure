@@ -88,7 +88,7 @@
 }
 
 h3.page-title {
-    background: url('http://stage2.blindsdirect.co.za/wp-content/uploads/2016/05/roller-blinds-icon.png');
+    background: url('http://stage.blindsdirect.co.za/wp-content/uploads/2016/05/roller-blinds-icon.png');
     background-repeat: no-repeat;
     padding-left: 30px;
     padding-bottom: 5px;
@@ -181,8 +181,4 @@ span.sheet-name {
 }
 table#variation-table {
     margin-top: 15px;
-}
-
-.dims-input {
-    width: 100px;
 }

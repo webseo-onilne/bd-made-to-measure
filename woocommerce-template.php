@@ -49,9 +49,6 @@ function woocommerce_quantity_input( $args = array() ) {
 		ob_start();
 
 		extract($defaults);
-		echo "<pre>";
-		var_dump($product);
-		echo "</pre>";
 		include 'includes/quantity.php';
 		//wc_get_template( 'global/quantity-input.php', $args );
 

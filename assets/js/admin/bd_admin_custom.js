@@ -19,9 +19,6 @@ jQuery(document).ready(function ($) {
         addMarkupData: function(markupData, priceGroup, markupRange) {
           return $http.get(blinds.ajax_url+'?action=bd_ajax_save_markup_data&group='+priceGroup+'&mdata='+markupData+'&range='+markupRange);
         },
-        addDimensionData: function(dimData) {
-          return $http.get(blinds.ajax_url+'?action=bd_ajax_save_dimension_data&group='+dimData.priceSheet+'&max_w='+dimData.maxWidth+'&min_w='+dimData.minWidth+'&max_d='+dimData.maxDrop+'&min_d='+dimData.minDrop);
-        },        
         getMetaData: function(priceGroup) {
           return $http.get(blinds.ajax_url+'?action=bd_ajax_get_meta_data&group='+priceGroup);
         },
@@ -135,6 +132,7 @@ jQuery(document).ready(function ($) {
         });
 
         DataLoader.getVariationData(true).then(function(response) {
+
           $scope.allVariations = response.data;
           
           var a = [];
@@ -165,29 +163,6 @@ jQuery(document).ready(function ($) {
           NProgress.done();
         });
       };
-
-      $scope.saveDims = function(obj) {
-        NProgress.start();
-        DataLoader.addDimensionData(obj).then(function(response) {
-          if (!response.data || response.data == '' || response.data == null) {
-            toastr.error('An error occured, please try again', 'Error');
-            NProgress.done();
-          }
-
-          $scope.dimRestraints = {
-            priceSheet: response.data[0].price_group,
-            minWidth: response.data[0].min_width,
-            maxWidth: response.data[0].max_width,
-            minDrop: response.data[0].min_drop,
-            maxDrop: response.data[0].max_drop
-          };
-
-          console.log(response);
-
-          toastr.success('Dimensions Added', 'Success');
-          NProgress.done();          
-        });
-      }
 
       function addMarkup(data) {
         

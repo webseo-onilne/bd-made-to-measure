@@ -4,7 +4,7 @@ app
   .controller("blindsCtrl", function($scope, $http, DataLoader) {
 
     $scope.selected_attribute = '';
-    $scope.productQuantity = jQuery('.quantity').find('input').val();
+    $scope.productQuantity = 1;
     $scope.showLoader = false;
 
     $scope.bd_get_price = function(width, drop, selectedSwatch, qty, restraints) {
@@ -76,8 +76,8 @@ app
 
           jQuery('.notice').html('').css('color', 'black');
           jQuery('.single_variation_wrap, .final-price').fadeIn();
-          jQuery('.single_add_to_cart_button').removeClass('disabled wc-variation-selection-needed').attr({'disabled': false, 'title': ''});
-
+          jQuery('.single_add_to_cart_button').removeClass('disabled wc-variation-selection-needed').attr({'disabled': false, 'title': ''}); 
+                   
         });
 
       }
@@ -97,10 +97,26 @@ app
       console.log(restraints);
     };
 
-    // $scope.$watch('productQuantity', function(v) {
-    //   var input_width, input_drop, selected_attribute;
-    //   //if (!v || !input_width || !input_drop || !selected_attribute) return;
-    //   $scope.bd_get_price(input_width, input_drop, selected_attribute, v, {});
+    // $scope.$watch('selected_attribute', function(v) {
+    //   if (!v) return;
+    //   var bd_width = jQuery('#wpti-product-x');
+    //   var bd_drop = jQuery('#wpti-product-y');
+    //   var bd_dims_raw = jQuery.parseJSON(jQuery('#wpti-product-y').attr('data-dims'));
+    //   var bd_dims = bd_dims_raw[v][0];
+    //   var user_input_x = bd_width.val();
+    //   var user_input_y = bd_drop.val();
+    //   if (user_input_x < parseInt(bd_dims.min_width)) {
+    //     // Not wide enough
+    //     console.log('To Small');
+    //   }
+    //   else if (user_input_x > parseInt(bd_dims.max_width)) {
+    //     // Too Wide
+    //     console.log('To Big');
+    //     setTimeout(function() {
+    //       jQuery('.notice').html(blinds.max_width_error + ': '+parseInt(bd_dims.max_width)+'. Please consider splitting the product into two. Or feel free to contact us for assistance.').css('color', 'red');
+    //     }, 500);
+        
+    //   }
     // });
 
   })

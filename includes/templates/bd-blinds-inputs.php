@@ -13,9 +13,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 // Get the max/min dimensions
 foreach ( $addons as $addon ) {
 	$tax_term = $addon['slug'];
-	$max_dimensions[ $addon['slug'] ] = $wpdb->get_results( "SELECT max_width, min_width, max_drop, min_drop 
-		FROM `wp_woocommerce_dimension_restraints`
-		WHERE `price_group` = '$tax_term' ", OBJECT );
+	$max_dimensions[ $addon['slug'] ] = $wpdb->get_results( "SELECT MAX(width) as max_width, MIN(width) as min_width, MAX(height) as max_drop, MIN(height) as min_drop 
+		FROM `wp_woocommerce_addon_price_table`
+		WHERE `field_label` = '$tax_term' ", OBJECT );
 }
 ?>
 
