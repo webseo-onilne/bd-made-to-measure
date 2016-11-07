@@ -11,6 +11,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 ?>
 
 <?php 
+global $wpdb;
 if (isset($_GET['preview'])) {
 
 	$postData = array(
@@ -183,7 +184,7 @@ if (isset($_GET['preview'])) {
     <div style="width: 48%; float:left;">
     	<h3 class="page-title">Import Curtains Price Sheet</h3>
     	<hr>
-    	<form enctype="multipart/form-data" method="post" action="<?php echo get_admin_url() ?>admin.php?page=woo-curtains-manger&preview=true">
+    	<form enctype="multipart/form-data" method="post" action="<?php echo get_admin_url() ?>admin.php?page=bd-curtain-price-import&preview=true">
 		<table id="" class="wp-list-table widefat fixed striped posts">
 			<thead>
 				<tr>

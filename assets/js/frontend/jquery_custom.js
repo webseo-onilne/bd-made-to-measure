@@ -15,9 +15,7 @@ jQuery(document).ready(function ($) {
             // otherwise it adds the prices together
             // Also - activate the input feilds
             $('.reset_variations').trigger('click');
-            $('#wpti-product-x').attr({'disabled': false, 'title': '', 'placeholder': 'Enter a width'}).prev('label').attr('data-original-title', 'Enter width in Millimeters (mm)');
-            $('#wpti-product-y').attr({'disabled': false, 'title': '', 'placeholder': 'Enter a drop'}).prev('label').attr('data-original-title', 'Enter drop in Millimeters (mm)');;
-            $('.calculate-price').attr({'disabled': false, 'title': ''})
+            $('.calculate-price').attr({'disabled': false, 'title': ''});
 
             // Remove any other finish that has the 'selected' class
             $(this).closest('form.variations_form').find('div.select').each(function() {
@@ -36,6 +34,9 @@ jQuery(document).ready(function ($) {
             setTimeout(function() {
                 // Trigger changes on the inputs to make sure the dimesions
                 // are correctly validated
+                //angular.element(document.getElementById('wpti-product-x')).triggerHandler('change');
+                // $('#wpti-product-x').trigger('change');
+                // $('#wpti-product-y').trigger('change');
                 $('.calculate-price').trigger('click');
             }, 500);
         });
@@ -87,6 +88,23 @@ jQuery(document).ready(function ($) {
         $(this).on('change', function() {
             $('.calculate-price').trigger('click');
         });
+    });
+
+
+    $('.single_variation_wrap').after('<div class="new_price"></div>');
+    $('.quantity input.qty').on('change', function() {
+        var qty = $(this).val();
+        var current_price = parseFloat($('.woocommerce-tabs').find('span.amount').text().split(' ')[1]);
+        var new_price = current_price * qty;
+        if (qty <= 1 ) {
+            $('.new_price').empty();
+            return;
+        }
+        else if (isNaN(new_price)) {
+            return;
+        };        
+        $('.new_price').html('<p>R '+new_price.toFixed(2)+'</p>').css('color', 'red');
+
     });
 
 });
